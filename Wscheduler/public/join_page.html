@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=960">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Istok+Web&amp;subset=all">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<title>Join_page</title>
+<link rel="stylesheet" type="text/css" href="site.20161106195043.css">
+<!--[if lte IE 7]>
+<link rel="stylesheet" type="text/css" href="css/site.20161106195043-lteIE7.css">
+<![endif]-->
+<script>
+
+  var count = 1;
+
+  function checkBlank(){
+    var userID = document.getElementByID('userID').value;
+    var userPASS = document.getElementByID('userPASS').value;
+    var userNAME = document.getElementByID('userNAME').value;
+    var userEMAIL = document.getElementByID('userEMAIL').value;
+    var userPHONE = document.getElementByID('userPHONE').value;
+
+    if(userID == '' || userPASS =='' || userNAME =='' || userEMAIL == '' || userPHONE )
+    {
+      alert("빈공간을 써주세요!");
+    }
+  }
+
+  function createRequest(){
+    var request;
+    try{
+      request = new XMLHttpRequest();
+    } catch (exception)
+    {
+      try{
+        request = new ActiveXObject('Msxml2.XMLHTTP');
+      } catch(innerException){
+        request = new ActiveXObject('Microsoft.XMLHTTP');
+      }
+    }
+    return request;
+  }
+
+  $(document).ready(function(){
+    $('#id_check').click(function(event){
+      var userID = $('#userID').val();
+
+      if(userID == '')
+      {
+        alert("ID를 써주세요!");
+        userID = $('#userID').focus();
+      }
+      else
+      {
+      var request = createRequest();
+      request.open('GET','/checkID?userID='+userID,false);
+      request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      request.send();
+      //alert(request.send());
+
+      alert(request.responseText); //그리고 여기에 0이면 없음
+
+      count = 0;
+      }
+    });
+
+    $('#insertform').click(function(event){
+
+      checkBlank();
+
+      if(count == 1)
+      {
+        alert("아이디 중복확인을 해주세요!");
+      }
+      else{
+
+      var request = createRequest();
+      request.open('POST','/signupAction',false);
+      request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      request.send('userID' + userID + 'userPASS' + userPASS
+                    + 'userNAME' + userNAME + 'userEMAIL' + userEMAIL + "userPHONE" + userPHONE );
+      }
+    });
+  });
+</script>
+</head>
+<body id="body">
+<div class="pos section">
+<div class="vis pos-2 size cont">
+<div class="vis pos-3 size-2 cont-2">
+<div class="vis pos-2 size-3 cont-3">
+<a class="anchor" href="">
+<picture class="img-2">
+<source srcset="images/left_circle-512-50.png 1x, images/left_circle-512-100.png 2x">
+<img src="images/left_circle-512-50.png" alt="" class="js img">
+</picture>
+</a>
+</div>
+<div class="vis pos-4 size-4 cont-4">
+<div class="cont-2"><p class="para"><span class="font">W scheduler </span><span class="font-2">회원가입</span></p></div>
+</div>
+</div>
+<form action="/signupAction" method="post" id ="myform">
+<div class="vis pos-5 size-5 cont-5">
+<div class="vis pos-6 size-6 cont-6">
+<div class="cont-2"><p class="para-2"><span class="font-3">사용자 </span><span class="font-4">정보입력</span></p></div>
+</div>
+<div class="vis pos-7 size-7 cont-2">
+<div class="vis pos-2 size-8 cont-7">
+<div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-5">아이디</span><span class="font-5">&nbsp;:</span></p></div>
+</div>
+<div class="vis pos-8 size-9 cont-8">
+<input type="text" id ="userID" name="userID" class="input">
+</div>
+<div class="vis pos-9 size-10 cont-9">
+<input type="button" value="중복확인" class="vis-2 pos-10 size-11 font-6 button" id ="id_check">
+</div>
+</div>
+<div class="vis pos-11 size-12 cont-2">
+<div class="vis pos-2 size-8 cont-10">
+<div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-5">비밀번호</span><span class="font-5">&nbsp;:</span></p></div>
+</div>
+<div class="vis pos-12 size-13 cont-11">
+<input type="password" name="userPASS" class="input-2">
+</div>
+</div>
+<div class="vis pos-13 size-12 cont-2">
+<div class="vis pos-2 size-8 cont-12">
+<div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-5">이름</span><span class="font-5">&nbsp;:</span></p></div>
+</div>
+<div class="vis pos-12 size-13 cont-13">
+<input type="text" name="userNAME" class="input-2">
+</div>
+</div>
+<div class="vis pos-11 size-12 cont-2">
+<div class="vis pos-2 size-8 cont-14">
+<div class="cont-2"><p class="para-3"><span class="font-5">* E-Mail :</span></p></div>
+</div>
+<div class="vis pos-14 size-13 cont-15">
+<input type="text" name="userEMAIL" class="input-2">
+</div>
+</div>
+<div class="vis pos-15 size-12 cont-2">
+<div class="vis pos-2 size-8 cont-16">
+<div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-7">전화번호</span><span class="font-5">:</span></p></div>
+</div>
+<div class="vis pos-8 size-13 cont-17">
+<input type="text" name="userPHONE" class="input-2">
+</div>
+</div>
+<div class="vis pos-16 size-14 cont-2">
+<div class="vis pos-2 size-15 cont-18">
+  <input type ="submit" class="vis-2 pos-10 size-16 font-8 button" id="insertform">
+SUBMIT
+  </input>
+</div>
+<div class="vis pos-17 size-17 cont-19">
+  <input type ="reset" class="vis-2 pos-10 size-18 font-8 button-2">
+RESET
+</input>
+</div>
+</div>
+</div>
+</form>
+</div>
+</div>
+<script type="text/javascript" src="jquery.js" defer></script>
+<script type="text/javascript" src="join_page.20161106195043.js" defer></script>
+<script type="text/javascript">
+var ver=RegExp(/Mozilla\/5\.0 \(Linux; .; Android ([\d.]+)/).exec(navigator.userAgent);if(ver&&parseFloat(ver[1])<5){document.getElementsByTagName('body')[0].className+=' whitespacefix';}
+</script>
+</body>
+</html>
