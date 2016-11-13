@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=960">
+<!-- <link href="custom/jquery-ui.css" rel="stylesheet"> -->
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Istok+Web&amp;subset=all">
 <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <title>Join_page</title>
@@ -43,9 +44,10 @@
   }
 
   $(document).ready(function(){
+
     $('#id_check').click(function(event){
       var userID = $('#userID').val();
-
+      //test();
       if(userID == '')
       {
         alert("ID를 써주세요!");
@@ -53,14 +55,30 @@
       }
       else
       {
+      var test = userID;
+      var checkcount= 0;
       var request = createRequest();
       request.open('GET','/checkID?userID='+userID,false);
       request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
       request.send();
-      //alert(request.send());
 
-      alert(request.responseText); //그리고 여기에 0이면 없음
-
+      var con = request.responseText;
+      var search = con.split("/");
+      var temp = new Array(search.length);
+      for(var i=1;i<search.length;i++){
+        temp[i] = search[i];
+        if(temp[i] == test){
+          alert('이미 있는 아이디입니다.');
+          break;
+        }
+        else{
+          checkcount++;
+        }
+      }
+      if(checkcount == search.length-1)
+      {
+        alert('사용하실수 있는 아이디입니다.');
+      }
       count = 0;
       }
     });
@@ -151,14 +169,10 @@
 </div>
 <div class="vis pos-16 size-14 cont-2">
 <div class="vis pos-2 size-15 cont-18">
-  <input type ="submit" class="vis-2 pos-10 size-16 font-8 button" id="insertform">
-SUBMIT
-  </input>
+  <input type ="submit" class="vis-2 pos-10 size-16 font-8 button" id="insertform" value="입력하기"/>
 </div>
 <div class="vis pos-17 size-17 cont-19">
-  <input type ="reset" class="vis-2 pos-10 size-18 font-8 button-2">
-RESET
-</input>
+  <input type ="reset" class="vis-2 pos-10 size-18 font-8 button-2" value="초기화하기" />
 </div>
 </div>
 </div>

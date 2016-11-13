@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <title>JQuery UI Basic</title>
+  <meta charset="UTF-8">
+  <link href="css/base/jquery-ui-1.10.4.custom.css" rel="stylesheet"/>
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+  <script src="js/autosize.js"></script>
+  <style>
+    body {font-size: 70%; font-family: "Trebuchet MS", sans-serif;}
+    h1 {text-align: center;}
+    input[type="text"], label{
+      margin-bottom: 12px; padding: .4em;
+      width: 95%;
+    }
+    textarea {margin-bottom: 12px; padding: .4em;
+    width: 95%; height: 50%;}
+  </style>
+  <script>
+  //autosizek(document.querySelectorAll('textarea'));
+  function createRequest(){
+    var request;
+    try{
+      request = new XMLHttpRequest();
+    } catch (exception)
+    {
+      try{
+        request = new ActiveXObject('Msxml2.XMLHTTP');
+      } catch(innerException){
+        request = new ActiveXObject('Microsoft.XMLHTTP');
+      }
+    }
+    return request;
+  }
+
+    $(document).ready(function(){
+
+      $('#dialog2').dialog({
+        autoOpen:true,
+        button: {
+          load: function(){
+              var showDate = $('#show-date').val();
+              //데이터가 있으면 hidden이 열리고 없으면 안열림
+          }
+        },
+        modal: true
+      });
+
+      $('#dialog').dialog({
+        autoOpen: true,
+        buttons: {
+          submit: function(){
+            var eventName = $('#event-name').val();
+            var eventContent = $('#event-content').val();
+            var eventDate = $('#event-date').val();
+
+            alert(eventName + "\n" + eventContent + "\n" + eventDate );
+
+
+
+           },
+          reset: function() {
+
+            $('#event-name').val('');
+            $('#event-content').val('');
+            $('#event-date').val('');
+           },
+          cancel: function() {
+
+            $('#event-name').val('');
+            $('#event-content').val('');
+            $('#event-date').val('');
+            $('#dialog').dialog('close');
+          }
+        },
+        modal: true
+      });
+      $('#event-date').datepicker({
+        dateFormat: 'yy년 mm월 dd일',
+        numberOfMonths: 1
+      });
+
+      $('#show-date').datepicker({
+        dateFormat: 'yy년 mm월 dd일',
+        numberOfMonths: 1
+      });
+
+    });
+  </script>
+</head>
+<body>
+  <h1 id="open-button">일정 생성 및 관리</h1>
+  <hr/>
+  <div id ="dialog" title ="WScheduler">
+    <h1>WScheduler 일정 등록</h1>
+    <label for="event-name">일정 이름</label>
+    <input id="event-name" type="text"/>
+    <label for="event-content">일정 내용</label>
+    <textarea id="event-content" >
+    </textarea>
+    <label for="event-date">날짜</label>
+    <input id="event-date" type="text"/>
+  </div>
+
+  <div id ="dialog2" title ="ShowScheduler">
+    <h1>WScheduler 일정 보기</h1>
+    <label for="event-date">날짜</label>
+    <input id="show-date" type="text"/>
+
+    <div id ="hiddenWorks">
+    <label for="event-name">예약 일정</label>
+    <input id="show-name" type="text"/>
+    <label for="event-content">예약 일정</label>
+    <textarea id="show-content" >
+    </textarea>
+  </div>
+  </div>
+</body>
+</html>

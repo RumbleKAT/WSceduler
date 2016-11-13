@@ -38,25 +38,32 @@ fs.readFile('index.ejs','utf8',function(error,data){
 });
 
 app.get("/checkID",function(request,response){
-  var result ;
-  var ID = request.param('userID');
-  var query = "select ID from Join_Member where id ="+ID;
-  //console.log(ID);
-  response.send(ID);
-});
+  var responseResult;
+  var count = 0;
+  var CheckID = new Array(count);
+  var userID = request.param('userID');
+  var query = "select * from Join_Member ";
+  console.log(userID);
 
-/*
   sql.connect(config, function(err){
     var request = new sql.Request();
     request.stream = true;
     request.query(query);
 
-    request.on('done',function(returnValue){
-      console.log(returnValue);
-      result = "사용가능한 아이디입니다!";
-      response.send(result + returnValue);
+    request.on('row', function(row){
+      CheckID[count] = row.ID;
+      count++;
     });
-*/
+
+      request.on('done',function(returnValue){
+        for(var i = 0;i<count;i++)
+        {
+          responseResult += "/" + CheckID[i] ;
+        }
+        response.send(responseResult); //스케줄을 조절하는 페이지를 버튼으로 이동
+      });
+  });
+});
 
 app.post("/signupAction",function(request,response){
 
@@ -65,8 +72,9 @@ app.post("/signupAction",function(request,response){
   var NAME =  request.param('userNAME');
   var EMAIL =  request.param('userEMAIL');
   var TEL = request.param('userPHONE');
+  var NO = '10';
 
-  var query = "INSERT INTO Join_Member (no,ID,PASS,NAME,EMAIL,TEL) VALUES ('9','"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
+  var query = "INSERT INTO Join_Member (no,ID,PASS,NAME,EMAIL,TEL) VALUES ('"+NO+"','"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
   console.log(query);
 
   sql.connect(config, function(err){
