@@ -27,6 +27,10 @@ app.use(app.router);
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'ejs');
 
+//알람 로직
+//전체 메모 날짜와 ID를 받고
+//ID를 토대로 Email주소를 받음
+//smtp와 카카오톡 sdk를 이용한 알람 보내기 
 
 app.get('/new', function(request, response){
 fs.readFile('index.ejs','utf8',function(error,data){
@@ -62,6 +66,51 @@ app.get("/checkID",function(request,response){
         }
         response.send(responseResult); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
+  });
+});
+
+app.get("/getWork",function(request,response){
+  var DATE = decodeURIComponent(request.param('showDate'));
+  var ID =  'ssj382';
+  var query = "select MEMO from memoD where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";
+  var result ='';
+  console.log(query);
+
+  sql.connect(config, function(err){
+    var request = new sql.Request();
+    request.stream = true;
+    request.query(query);
+
+    request.on('row', function(row){
+      result += row.MEMO
+    });
+
+
+    request.on('done',function(returnValue){
+      //var result = query + "//";
+      response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+
+app.get("/sendWork",function(request,response){
+    var ID =  'ssj382';
+    var DATE = decodeURIComponent(request.param('eventDate'));
+    var MEMOCONTENT = decodeURIComponent(request.param('eventContent'));
+    var MEMOTITLE = decodeURIComponent(request.param('eventName'));
+    var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
+
+    var query = "INSERT INTO memoD (ID,DATED,MEMO) VALUES ('"+ ID +"','"+DATE+"','"+MEMO+"')";
+
+    sql.connect(config, function(err){
+
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        response.send(query); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
   });
 });
 

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Istok+Web%7CNunito&amp;subset=all">
+<title>schdule_page</title>
+<link rel="stylesheet" type="text/css" href="css/site.20161114184053.css">
+<link href="css/base/jquery-ui-1.10.4.custom.css" rel="stylesheet"/>
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+<script src="js/autosize.js"></script>
+<style>
+  body {font-size: 70%; font-family: "Trebuchet MS", sans-serif;}
+  h1 {text-align: center;}
+  input[type="text"], label{
+    margin-bottom: 12px; padding: .4em;
+    width: 95%;
+  }
+  textarea {margin-bottom: 12px; padding: .4em;
+  width: 95%; height: 50%;}
+</style>
+<script>
+//autosizek(document.querySelectorAll('textarea'));
+function createRequest(){
+  var request;
+  try{
+    request = new XMLHttpRequest();
+  } catch (exception)
+  {
+    try{
+      request = new ActiveXObject('Msxml2.XMLHTTP');
+    } catch(innerException){
+      request = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+  }
+  return request;
+}
+
+  $(document).ready(function(){
+
+  $('#open-button').click(function(){
+    $('#dialog').dialog('open');
+  });
+
+    $('#dialog').dialog({
+      autoOpen: false,
+      buttons: {
+        submit: function(){
+          var eventName = $('#event-name').val();
+          var eventContent = $('#event-content').val();
+          var eventDate = $('#event-date').val();
+
+          alert(eventName + "\n" + eventContent + "\n" + eventDate );
+
+
+
+         },
+        reset: function() {
+
+          $('#event-name').val('');
+          $('#event-content').val('');
+          $('#event-date').val('');
+         },
+        cancel: function() {
+
+          $('#event-name').val('');
+          $('#event-content').val('');
+          $('#event-date').val('');
+          $('#dialog').dialog('close');
+        }
+      },
+      modal: true
+    });
+    $('#event-date').datepicker({
+      dateFormat: 'yy년 mm월 dd일',
+      numberOfMonths: 1
+    });
+
+    $('#show-date').datepicker({
+      dateFormat: 'yy년 mm월 dd일',
+      numberOfMonths: 1
+    });
+
+  });
+</script>
+</head>
+<body id="body">
+  <h1 id="open-button">일정 생성 및 관리</h1>
+    <hr/>
+<div class="pos section">
+<div class="vis pos-2 size cont">
+<div class="vis pos-3 size-22 cont-2">
+<div class="vis pos-2 size-3 cont-3">
+<a class="anchor" href="/index.html">
+<picture class="img-2">
+<source srcset="images/left_circle-512-50.png 1x, images/left_circle-512-100.png 2x">
+<img src="images/left_circle-512-50.png" alt="" class="js-5 img">
+</picture>
+</a>
+</div>
+<div id ="dialog" title ="WScheduler">
+  <h1>WScheduler 일정 등록</h1>
+  <label for="event-name">일정 이름</label>
+  <input id="event-name" type="text"/>
+  <label for="event-content">일정 내용</label>
+  <textarea id="event-content" >
+  </textarea>
+  <label for="event-date">날짜</label>
+  <input id="event-date" type="text"/>
+</div>
+
+<div class="vis pos-4 size-4 cont-4">
+<div class="cont-2"><p class="para"><span class="font">W scheduler</span><span class="font">&nbsp;</span><span class="font-11">일정 관리</span></p></div>
+</div>
+<div class="vis pos-24 size-23 cont-16">
+<img src="images/more-512.gif" id ="makeSchdule" alt="" class="js-6 img-7">
+</div>
+</div>
+<div class="vis pos-5 size-24 cont-17">
+<div class="vis pos-25 size-6 cont-8">
+<div class="cont-2"><p class="para-6"><span class="font-12">당신의 일정을 확인합니다!</span></p></div>
+</div>
+<div class="vis pos-26 size-25 cont-18">
+
+
+</div>
+<div class="vis pos-27 size-26 cont-10">
+<a class="vis-2 pos-12 size-27 font-5 button" href="#">
+조회하기
+</a>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/jquery.js" defer></script>
+<script type="text/javascript" src="js/schdule_page.20161114184053.js" defer></script>
+<script type="text/javascript">
+var ver=RegExp(/Mozilla\/5\.0 \(Linux; .; Android ([\d.]+)/).exec(navigator.userAgent);if(ver&&parseFloat(ver[1])<5){document.getElementsByTagName('body')[0].className+=' whitespacefix';}
+</script>
+</body>
+</html>

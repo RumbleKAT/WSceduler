@@ -6,7 +6,7 @@
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
   <script src="js/autosize.js"></script>
-  <style>
+    <style>
     body {font-size: 70%; font-family: "Trebuchet MS", sans-serif;}
     h1 {text-align: center;}
     input[type="text"], label{
@@ -15,6 +15,8 @@
     }
     textarea {margin-bottom: 12px; padding: .4em;
     width: 95%; height: 50%;}
+    #box {padding: 5px; width:70%; margin-left: 150px;}
+    #box h1{ margin: 0; padding: 5px; text-align: center;}
   </style>
   <script>
   //autosizek(document.querySelectorAll('textarea'));
@@ -34,29 +36,56 @@
   }
 
     $(document).ready(function(){
+        $('#show-data').hide();
 
-      $('#dialog2').dialog({
-        autoOpen:true,
-        button: {
-          load: function(){
-              var showDate = $('#show-date').val();
-              //데이터가 있으면 hidden이 열리고 없으면 안열림
+      $('#showdata').click(function(){
+          $('#show-data').show();
+
+          var showDate = $('#show-date').val();
+          var result ='';
+          showDate = encodeURI(showDate);
+
+          var request = createRequest();
+          request.open('GET','/getWork?showDate='+showDate,false);
+          request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+          request.send();
+
+          alert(request.responseText);
+
+          if(request.responseText == '' || request.responseText == NULL)
+          {
+            result = "값이 존재하지 않습니다.";
           }
-        },
-        modal: true
+          else {
+            result = request.responseText;
+          }
+          alert(result);
       });
 
+      $('#open-button').click(function(){
+        $('#dialog').dialog('open');
+      });
+
+
       $('#dialog').dialog({
-        autoOpen: true,
+        autoOpen: false,
         buttons: {
           submit: function(){
             var eventName = $('#event-name').val();
             var eventContent = $('#event-content').val();
             var eventDate = $('#event-date').val();
 
-            alert(eventName + "\n" + eventContent + "\n" + eventDate );
+            eventName = encodeURI(eventName);
+            eventDate = encodeURI(eventDate);
+            eventContent = encodeURI(eventContent);
 
+            var request = createRequest();
+            request.open('GET','/sendWork?eventDate='+eventDate+'&eventName='+
+            eventName + '&eventContent='+eventContent,false);
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+            request.send();
 
+            alert(request.responseText);
 
            },
           reset: function() {
@@ -89,7 +118,7 @@
   </script>
 </head>
 <body>
-  <h1 id="open-button">일정 생성 및 관리</h1>
+  <h1 id="open-button">일정 추가하기</h1>
   <hr/>
   <div id ="dialog" title ="WScheduler">
     <h1>WScheduler 일정 등록</h1>
@@ -101,19 +130,24 @@
     <label for="event-date">날짜</label>
     <input id="event-date" type="text"/>
   </div>
-
-  <div id ="dialog2" title ="ShowScheduler">
-    <h1>WScheduler 일정 보기</h1>
-    <label for="event-date">날짜</label>
+  <br>
+  <br>
+  <br>
+  <div id="box"class="ui-widget-content">
+    <h1 id = "showdata" class ="ui-widget-header">일정 확인하기</h1>
+    <p>
+    <label for="show-date" class ="ui-widget-header">날짜</label></br>
     <input id="show-date" type="text"/>
+    <div id ="show-data">
+      <label for="show-name" class ="ui-widget-header">일정 이름</label></br>
+      <input id="show-name" type="text"/>
+      </br>
+      <label for="show-content" class ="ui-widget-header">일정 내용</label></br>
+      <textarea id="show-content" >
+      </textarea>
+    </div>
+  </p>
+  </div>
 
-    <div id ="hiddenWorks">
-    <label for="event-name">예약 일정</label>
-    <input id="show-name" type="text"/>
-    <label for="event-content">예약 일정</label>
-    <textarea id="show-content" >
-    </textarea>
-  </div>
-  </div>
 </body>
 </html>
