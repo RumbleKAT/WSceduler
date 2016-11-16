@@ -42,11 +42,20 @@
           $('#show-data').show();
 
           var showDate = $('#show-date').val();
+          //이 기능은 로그인할때 사용됨
+          var arr1 = showDate.split("-");
+          var beforeDay = new Date(arr1[0],arr1[1],arr1[2]);
+          var beforeDate = beforeDay.getFullYear() + "-" + beforeDay.getMonth() + "-"+ (beforeDay.getDate() -1);
+
+          alert(beforeDate);
+          //클라이언트에서 적은 날을 보내줌
+
           var result ='';
           showDate = encodeURI(showDate);
+          beforeDate = encodeURI(beforeDate);
 
           var request = createRequest();
-          request.open('GET','/getWork?showDate='+showDate,false);
+          request.open('GET','/getWork?showDate='+showDate + "&beforeDate="+beforeDate,false);
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
           request.send();
 
@@ -60,6 +69,7 @@
             result = request.responseText;
           }
           alert(result);
+
       });
 
       $('#open-button').click(function(){
@@ -105,12 +115,12 @@
         modal: true
       });
       $('#event-date').datepicker({
-        dateFormat: 'yy년 mm월 dd일',
+        dateFormat: 'yy-mm-dd',
         numberOfMonths: 1
       });
 
       $('#show-date').datepicker({
-        dateFormat: 'yy년 mm월 dd일',
+        dateFormat: 'yy-mm-dd',
         numberOfMonths: 1
       });
 

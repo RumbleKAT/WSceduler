@@ -63,6 +63,7 @@
       request.send();
 
       var con = request.responseText;
+      alert(con);
       var search = con.split("/");
       var temp = new Array(search.length);
       for(var i=1;i<search.length;i++){

@@ -5,6 +5,19 @@ var bodyParser = require('body-parser');
 var fs = require('fs');
 var ejs = require("ejs");
 var router = express.Router();
+var nowuser = '';
+var nowTime = '2016-11-16';
+var nodemailer = require('nodemailer');
+
+var transporter = nodemailer.createTransport( {
+   host: "smtp.gmail.com", // hostname
+   secureConnection: true, // use SSL
+   port: 465, // port for secure SMTP
+   auth: {
+       user: "reki318@gmail.com",
+       pass: "ruki9179@"
+   }
+});
 
 var config = {
   user: "MJSONG",
@@ -30,7 +43,7 @@ app.set('view engine', 'ejs');
 //알람 로직
 //전체 메모 날짜와 ID를 받고
 //ID를 토대로 Email주소를 받음
-//smtp와 카카오톡 sdk를 이용한 알람 보내기 
+//smtp와 카카오톡 sdk를 이용한 알람
 
 app.get('/new', function(request, response){
 fs.readFile('index.ejs','utf8',function(error,data){
@@ -41,11 +54,22 @@ fs.readFile('index.ejs','utf8',function(error,data){
 });
 });
 
+app.post("/checkschedule",function(request,response){
+ //  nowuser 로그인을 하면 뜨는 걸로
+ // 일정을 분석하고 현재 날짜와 만약 현재 날짜보다 하루 늦으면 메일을 발송
+
+  var query = "select EMAIL from Join_Member where ID ="+'ssj382';
+
+});
+
 app.get("/checkID",function(request,response){
   var responseResult;
   var count = 0;
   var CheckID = new Array(count);
   var userID = request.param('userID');
+
+
+
   var query = "select * from Join_Member ";
   console.log(userID);
 
@@ -67,14 +91,76 @@ app.get("/checkID",function(request,response){
         response.send(responseResult); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
   });
+
+
 });
 
 app.get("/getWork",function(request,response){
   var DATE = decodeURIComponent(request.param('showDate'));
+  var BEFOREDATE = decodeURIComponent(request.param('beforeDate'));
   var ID =  'ssj382';
+  var email ='';
+  var Memo = '';
+  var title = ''; //제목과 내용을 분리
+  var content = '';
+  var gomail ='';
+  //if(nowTime == BEFOREDATE)
+  //{
+
+  //  var query = "select EMAIL from Join_Member where ID = " +"'"+ ID+"'";//로그인 버튼시 사용
+    var query2 = "select MEMO from memoD where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
+    console.log(query2);
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query2);
+
+      request.on('row', function(row){
+        email = row.EMAIL
+      });
+
+      request.query(query2);
+
+      request.on('row', function(row){
+        Memo = row.MEMO/*
+        var arr1 = Memo.split("//");
+        console.log(arr[0]);
+        title = arr1[0];
+        content = arr1[1];*/
+        //console.log(email);
+      });
+
+      request.on('done',function(returnValue){
+        //var result = "일정이 존재합니다 메일을 보냅니다.";
+        //console.log(Memo);
+
+        var mailOptions = {
+            from: '"송명진" <reki318@gmail.com>',
+            to: 'reki318@naver.com',
+            subject: '해야하는일',
+            text: Memo
+        };
+
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error){
+                return console.log(error);
+            }
+            console.log('Message sent: ' + info.response);
+        });
+        //response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+      });
+    });
+
+    //console.log(email + Memo);
+
+
+  //}
+
+/*
   var query = "select MEMO from memoD where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";
   var result ='';
-  console.log(query);
+  console.log(BEFOREDATE);
 
   sql.connect(config, function(err){
     var request = new sql.Request();
@@ -90,7 +176,7 @@ app.get("/getWork",function(request,response){
       //var result = query + "//";
       response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
-  });
+  });*/
 });
 
 app.get("/sendWork",function(request,response){
@@ -121,8 +207,8 @@ app.post("/signupAction",function(request,response){
   var NAME =  request.param('userNAME');
   var EMAIL =  request.param('userEMAIL');
   var TEL = request.param('userPHONE');
-  var NO = '10';
-
+  var NO = '11';
+  nowuser = ID;
   var query = "INSERT INTO Join_Member (no,ID,PASS,NAME,EMAIL,TEL) VALUES ('"+NO+"','"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
   console.log(query);
 
@@ -134,11 +220,12 @@ app.post("/signupAction",function(request,response){
 
     var result = NAME +"님 가입을 축하합니다."; //시간을 다루는 페이지로 이동
 
-  //  var data = "<html><head><title>JOIN_TO_WSCHEDULER</title></head>"
-    //data += "<h1>"+result+"</h1>";
+    var data = "<html><head><title>Welcome_WSCHEDULER</title></head>"
+    data += "<h1>"+result+"</h1>";
+    data += "<a href=/index.html>" + "처음 페이지에서 로그인해주세요!" + "</a>";
 
     request.on('done',function(returnValue){
-      //data += "</html>";
+      data += "</html>";
       response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
