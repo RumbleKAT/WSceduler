@@ -6,6 +6,7 @@
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
   <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
   <script src="js/autosize.js"></script>
+  <script src="js/jquery.cookie.js"></script>
     <style>
     body {font-size: 70%; font-family: "Trebuchet MS", sans-serif;}
     h1 {text-align: center;}
@@ -37,6 +38,7 @@
 
     $(document).ready(function(){
         $('#show-data').hide();
+        // 로그인 한 유저에 맞춰서 이 화면이 켜지면 리쿼스트를 보냄
 
       $('#showdata').click(function(){
           $('#show-data').show();
@@ -59,9 +61,9 @@
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
           request.send();
 
-          alert(request.responseText);
+          //alert(request.responseText);
 
-          if(request.responseText == '' || request.responseText == NULL)
+          if(request.responseText == '' || request.responseText == null)
           {
             result = "값이 존재하지 않습니다.";
           }
@@ -74,6 +76,20 @@
 
       $('#open-button').click(function(){
         $('#dialog').dialog('open');
+        var request = createRequest();
+        request.open('GET','/mailtouser',false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        if(request.responseText == '' || request.responseText == null)
+          {
+            result = "값이 존재하지 않습니다.";
+          }
+        else {
+            result = request.responseText;
+          }
+            alert(result);
+
       });
 
 

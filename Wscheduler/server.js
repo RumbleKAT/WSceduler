@@ -4,11 +4,21 @@ var sql = require("mssql");
 var bodyParser = require('body-parser');
 var fs = require('fs');
 var ejs = require("ejs");
+//var Cookies = require("cookies");
+require("date-utils");
+
+var dt = new Date();
+var nowTime = dt.toFormat('YYYY-MM-DD'); // 현재시간을 알아냄
+var future = Date.tomorrow();
+future = future.toFormat('YYYY-MM-DD'); // 미래의 시간을 알아냄
+console.log(future);
 var router = express.Router();
-var nowuser = '';
-var nowTime = '2016-11-16';
+var nowID ='';
+var nowPASS ='';
+var nowEMAIL = '';
 var nodemailer = require('nodemailer');
 
+//smtp 프로토콜 사용
 var transporter = nodemailer.createTransport( {
    host: "smtp.gmail.com", // hostname
    secureConnection: true, // use SSL
@@ -19,48 +29,92 @@ var transporter = nodemailer.createTransport( {
    }
 });
 
+//mssql 연결
 var config = {
   user: "MJSONG",
   password: "0000",
   server: "127.0.0.1",
   database: "MJSONGEXAM",
   stream: true,
-
   options: {
     encrypy: true
   }
 }
 
-
 var app = express();
-app.use(express.static('public'));
-app.use(express.bodyParser());
-app.use(app.router);
+  //app.use(cookieParser());
+  app.use(express.static('public'));
+  app.use(express.bodyParser());
+  app.use(app.router);
+  app.engine('html', require('ejs').renderFile);
+  app.set('view engine', 'ejs');
+//로그인 부분 체크  - 전역변수로 ID,PASS,EMAIL을 가져옴
 
-app.engine('html', require('ejs').renderFile);
-app.set('view engine', 'ejs');
+ app.get("/checkschedule",function(request,response){
+   //  nowuser 로그인을 하면 뜨는 걸로
+   // 일정을 분석하고 현재 날짜와 만약 현재 날짜보다 하루 늦으면 메일을 발송
+   var result = '';
+   var userID = request.param('userID');
+   var userPASS = request.param('userPASS');
 
-//알람 로직
-//전체 메모 날짜와 ID를 받고
-//ID를 토대로 Email주소를 받음
-//smtp와 카카오톡 sdk를 이용한 알람
+   var query ="select ID,PASS,EMAIL from Member where ID="+"'"+userID+"'"+"AND PASS="+"'"+userPASS+"'";
 
-app.get('/new', function(request, response){
-fs.readFile('index.ejs','utf8',function(error,data){
-  response.writeHead(200,{'content-type' : 'text/html'});
-  response.end(ejs.render(data,{
-    user: "Great User",title:"homepage"
-  }));
+   sql.connect(config, function(err){
+     var request = new sql.Request();
+     request.stream = true;
+     console.log(userID);
+     request.query(query);
+
+     request.on('row', function(row){
+          nowID = row.ID
+        nowPASS = row.PASS
+        nowEMAIL = row.EMAIL
+        result = nowID + "/" + nowPASS;
+     });
+
+       request.on('done',function(returnValue){
+          response.send(result);
+          console.log(nowID);
+        });
+      });
+  });
+//ejs부분 -안사용
+ app.get('/new', function(request, response){
+   fs.readFile('index.ejs','utf8',function(error,data){
+     response.writeHead(200,{'content-type' : 'text/html'});
+     response.end(ejs.render(data,{
+       user: "Great User",title:"homepage"
+     }));
+   });
+ });
+//메모를 로딩하는 부분
+app.get("/mailtouser",function(request,response){
+
+  var userID = request.param('userID');
+  var email ='';
+  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'";
+  console.log(prequery);
+  var email = '';
+
+  sql.connect(config, function(err){
+    var request = new sql.Request();
+    request.stream = true;
+    request.query(prequery);
+
+    request.on('row', function(row){
+        memo = row.MEMO
+        email = row.EMAIL
+        console.log(memo);
+        console.log(email);
+    });
+
+      request.on('done',function(returnValue){
+        var result ="내일 일정을 보내드렸습니다.";
+        response.send(result);
+      });
 });
 });
 
-app.post("/checkschedule",function(request,response){
- //  nowuser 로그인을 하면 뜨는 걸로
- // 일정을 분석하고 현재 날짜와 만약 현재 날짜보다 하루 늦으면 메일을 발송
-
-  var query = "select EMAIL from Join_Member where ID ="+'ssj382';
-
-});
 
 app.get("/checkID",function(request,response){
   var responseResult;
@@ -68,9 +122,7 @@ app.get("/checkID",function(request,response){
   var CheckID = new Array(count);
   var userID = request.param('userID');
 
-
-
-  var query = "select * from Join_Member ";
+  var query = "select * from Member ";
   console.log(userID);
 
   sql.connect(config, function(err){
@@ -91,24 +143,18 @@ app.get("/checkID",function(request,response){
         response.send(responseResult); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
   });
-
-
 });
 
 app.get("/getWork",function(request,response){
   var DATE = decodeURIComponent(request.param('showDate'));
   var BEFOREDATE = decodeURIComponent(request.param('beforeDate'));
-  var ID =  'ssj382';
+  //var ID =  'ssj382';
   var email ='';
   var Memo = '';
-  var title = ''; //제목과 내용을 분리
+  var title = '';
   var content = '';
-  var gomail ='';
-  //if(nowTime == BEFOREDATE)
-  //{
 
-  //  var query = "select EMAIL from Join_Member where ID = " +"'"+ ID+"'";//로그인 버튼시 사용
-    var query2 = "select MEMO from memoD where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
+    var query2 = "select MEMO from MemberMemo where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ userID + "'";//로드 될떄
     console.log(query2);
 
     sql.connect(config, function(err){
@@ -117,18 +163,7 @@ app.get("/getWork",function(request,response){
       request.query(query2);
 
       request.on('row', function(row){
-        email = row.EMAIL
-      });
-
-      request.query(query2);
-
-      request.on('row', function(row){
-        Memo = row.MEMO/*
-        var arr1 = Memo.split("//");
-        console.log(arr[0]);
-        title = arr1[0];
-        content = arr1[1];*/
-        //console.log(email);
+        Memo = row.MEMO
       });
 
       request.on('done',function(returnValue){
@@ -148,45 +183,17 @@ app.get("/getWork",function(request,response){
             }
             console.log('Message sent: ' + info.response);
         });
-        //response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
     });
-
-    //console.log(email + Memo);
-
-
-  //}
-
-/*
-  var query = "select MEMO from memoD where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";
-  var result ='';
-  console.log(BEFOREDATE);
-
-  sql.connect(config, function(err){
-    var request = new sql.Request();
-    request.stream = true;
-    request.query(query);
-
-    request.on('row', function(row){
-      result += row.MEMO
-    });
-
-
-    request.on('done',function(returnValue){
-      //var result = query + "//";
-      response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
-    });
-  });*/
 });
 
 app.get("/sendWork",function(request,response){
-    var ID =  'ssj382';
     var DATE = decodeURIComponent(request.param('eventDate'));
     var MEMOCONTENT = decodeURIComponent(request.param('eventContent'));
     var MEMOTITLE = decodeURIComponent(request.param('eventName'));
     var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
 
-    var query = "INSERT INTO memoD (ID,DATED,MEMO) VALUES ('"+ ID +"','"+DATE+"','"+MEMO+"')";
+    var query = "INSERT INTO MemberMemo (ID,DATED,MEMO) VALUES ('"+ userID +"','"+DATE+"','"+MEMO+"')";
 
     sql.connect(config, function(err){
 
@@ -207,13 +214,11 @@ app.post("/signupAction",function(request,response){
   var NAME =  request.param('userNAME');
   var EMAIL =  request.param('userEMAIL');
   var TEL = request.param('userPHONE');
-  var NO = '11';
   nowuser = ID;
-  var query = "INSERT INTO Join_Member (no,ID,PASS,NAME,EMAIL,TEL) VALUES ('"+NO+"','"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
+  var query = "INSERT INTO Member (ID,PASS,NAME,EMAIL,TEL) VALUES ('"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
   console.log(query);
 
   sql.connect(config, function(err){
-  //  console.log(ID);
     var request = new sql.Request();
     request.stream = true;
     request.query(query);
@@ -229,35 +234,24 @@ app.post("/signupAction",function(request,response){
       response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
-
-});
-
-
-app.get("/select",function(request,response){
-  sql.connect(config, function(err){
-    var request = new sql.Request();
-    request.stream = true;
-    request.query('select * from member');
-
-    var data = "<html><head><title>mssql test</title></head>"
-    data += "<h1>TEST</h1>"
-    data += "<table border = 1>";
-    data += "<tr><th>ID</th><th>PASS</th></tr>"
-
-    request.on('row', function(row){
-      data += "<tr>"
-      data += "<td>" + row.ID + "</td>"
-      data += "<td>" + row.PASS + "</td>"
-      data += "</tr>"
-    });
-
-    request.on('done', function(returnValue){
-      data += "</table></html>"
-      response.send(data);
-    });
-  });
 });
 
 http.createServer(app).listen(8080, function(){
   console.log("Server Running at http://127.0.0.1:8080");
 });
+
+/*
+var mailOptions = {
+    from: '"송명진" <reki318@gmail.com>',
+    to: 'reki318@naver.com',
+    subject: '해야하는일',
+    text: memo
+};
+
+transporter.sendMail(mailOptions, function(error, info){
+    if(error){
+        return console.log(error);
+    }
+    console.log('Message sent: ' + info.response);
+});
+*/
