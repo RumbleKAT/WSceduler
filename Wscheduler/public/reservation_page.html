@@ -20,7 +20,7 @@
     #box h1{ margin: 0; padding: 5px; text-align: center;}
   </style>
   <script>
-  //autosizek(document.querySelectorAll('textarea'));
+//아래 버튼 만들어서 수정, 삭제 버튼 만들기
   function createRequest(){
     var request;
     try{
@@ -39,25 +39,33 @@
     $(document).ready(function(){
         $('#show-data').hide();
         // 로그인 한 유저에 맞춰서 이 화면이 켜지면 리쿼스트를 보냄
+      $('#edit').click(function(){
+
+      });
+
+      $('#delete').click(function(){
+
+      });
 
       $('#showdata').click(function(){
           $('#show-data').show();
+          $('#show-name').empty();
+          $('#show-content').empty();
 
           var showDate = $('#show-date').val();
-          //이 기능은 로그인할때 사용됨
-          var arr1 = showDate.split("-");
-          var beforeDay = new Date(arr1[0],arr1[1],arr1[2]);
-          var beforeDate = beforeDay.getFullYear() + "-" + beforeDay.getMonth() + "-"+ (beforeDay.getDate() -1);
 
-          alert(beforeDate);
-          //클라이언트에서 적은 날을 보내줌
 
           var result ='';
           showDate = encodeURI(showDate);
-          beforeDate = encodeURI(beforeDate);
+          //쿠키를 불러옴
+          var loadID = document.cookie;
+          var arr1 = loadID.search(';');
+          var arr2 = loadID.search('//');
+          loadID = loadID.slice(arr1+2,arr2);
+
 
           var request = createRequest();
-          request.open('GET','/getWork?showDate='+showDate + "&beforeDate="+beforeDate,false);
+          request.open('GET','/getWork?showDate='+showDate + "&userID="+loadID,false);
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
           request.send();
 
@@ -70,26 +78,17 @@
           else {
             result = request.responseText;
           }
-          alert(result);
+          alert("response값:" + result);
 
+          var arr = result.split("//");
+          $('#show-name').append(arr[0]);
+          $('#show-content').append(arr[1]);
+
+          alert("일정 로딩 완료!");
       });
 
       $('#open-button').click(function(){
         $('#dialog').dialog('open');
-        var request = createRequest();
-        request.open('GET','/mailtouser',false);
-        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-        request.send();
-
-        if(request.responseText == '' || request.responseText == null)
-          {
-            result = "값이 존재하지 않습니다.";
-          }
-        else {
-            result = request.responseText;
-          }
-            alert(result);
-
       });
 
 
@@ -97,6 +96,11 @@
         autoOpen: false,
         buttons: {
           submit: function(){
+            var loadID = document.cookie;
+            var arr1 = loadID.search(';');
+            var arr2 = loadID.search('//');
+            loadID = loadID.slice(arr1+2,arr2);
+
             var eventName = $('#event-name').val();
             var eventContent = $('#event-content').val();
             var eventDate = $('#event-date').val();
@@ -107,7 +111,7 @@
 
             var request = createRequest();
             request.open('GET','/sendWork?eventDate='+eventDate+'&eventName='+
-            eventName + '&eventContent='+eventContent,false);
+            eventName + '&eventContent='+eventContent+'&userID='+loadID,false);
             request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
             request.send();
 
@@ -171,6 +175,8 @@
       <label for="show-content" class ="ui-widget-header">일정 내용</label></br>
       <textarea id="show-content" >
       </textarea>
+      <input type= "button" id="edit" value="수정하기"/> &nbsp;
+      <input type= "button" id="delete" value="삭제하기"/>
     </div>
   </p>
   </div>

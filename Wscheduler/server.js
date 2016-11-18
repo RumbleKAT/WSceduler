@@ -92,7 +92,8 @@ app.get("/mailtouser",function(request,response){
 
   var userID = request.param('userID');
   var email ='';
-  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'";
+  future = '2016-11-18';
+  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'"+"AND MM.DATEU="+"'"+future+"'";
   console.log(prequery);
   var email = '';
 
@@ -109,9 +110,23 @@ app.get("/mailtouser",function(request,response){
     });
 
       request.on('done',function(returnValue){
-        var result ="내일 일정을 보내드렸습니다.";
-        response.send(result);
+        var result ='';
+        var mailOptions = {
+            from: '"송명진" <reki318@gmail.com>',
+            to: email,
+            subject: '해야하는일',
+            text: memo
+        };
+
+        transporter.sendMail(mailOptions, function(error, info){
+            if(error){
+                return console.log(error);
+            }
+            console.log('Message sent: ' + info.response);
+            result = info.response;
       });
+        response.send(result);
+    });
 });
 });
 
@@ -147,14 +162,15 @@ app.get("/checkID",function(request,response){
 
 app.get("/getWork",function(request,response){
   var DATE = decodeURIComponent(request.param('showDate'));
-  var BEFOREDATE = decodeURIComponent(request.param('beforeDate'));
+  var ID = decodeURIComponent(request.param('userID'));
   //var ID =  'ssj382';
   var email ='';
   var Memo = '';
   var title = '';
   var content = '';
+  //쿠키나 정보를 저장해야함
 
-    var query2 = "select MEMO from MemberMemo where DATED = " +"'"+ DATE+"'" + "AND ID =" +"'"+ userID + "'";//로드 될떄
+    var query2 = "select MEMO from MemberMemo where DATEU = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
     console.log(query2);
 
     sql.connect(config, function(err){
@@ -167,25 +183,21 @@ app.get("/getWork",function(request,response){
       });
 
       request.on('done',function(returnValue){
-        //var result = "일정이 존재합니다 메일을 보냅니다.";
-        //console.log(Memo);
-
-        var mailOptions = {
-            from: '"송명진" <reki318@gmail.com>',
-            to: 'reki318@naver.com',
-            subject: '해야하는일',
-            text: Memo
-        };
-
-        transporter.sendMail(mailOptions, function(error, info){
-            if(error){
-                return console.log(error);
-            }
-            console.log('Message sent: ' + info.response);
-        });
+        var result = Memo;
+        response.send(result);
       });
     });
 });
+
+//수정 삭제 부분 만들기
+/*
+delete from department
+where deptno = 4
+
+update EMPLOYEE
+set dno = 3 , salary = salary * 1.05
+where EMPno = 2106
+*/
 
 app.get("/sendWork",function(request,response){
     var DATE = decodeURIComponent(request.param('eventDate'));

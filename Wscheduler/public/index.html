@@ -9,6 +9,16 @@
 <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="js/jquery.cookie.js"></script>
 <script>
+function removeCookie(){
+  var date = new Date();
+  date.setDate(date.getDate() - 1);
+
+  var willCookie = '';
+  willCookie = 'expires=' + date.toUTCString();
+
+  document.cookie = willCookie;
+}
+
 function go_url(){
        location.href="reservation_page.html"  // 페이지 이동...
     }
@@ -29,6 +39,8 @@ function createRequest(){
 }
 
   $(document).ready(function(){
+    removeCookie();
+    alert(document.cookie);
     $('#after').hide();
     $('#before').show();
 
@@ -55,21 +67,21 @@ function createRequest(){
         alert(result);
         $('#before').hide();
 
+        var date = new Date();
+        date.setDate(date.getDate()+1);
+
+        var willcookie = '';
+        willcookie += userID+'//';
+        willcookie += 'expires=' + date.toUTCString();
+        //쿠키를 저장
+        document.cookie = willcookie;
+
+        alert('cookie:'+document.cookie);
+
         var request = createRequest();
         request.open('GET','/mailtouser?userID='+userID,false);
         request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         request.send();
-        //$.cookie('userID',userID,{ expires: 1,path: '/',secure: false});
-
-
-        if(request.responseText == '' || request.responseText == null)
-          {
-            result = "값이 존재하지 않습니다.";
-          }
-        else {
-            result = request.responseText;
-          }
-            alert(result);
 
         go_url();
 
