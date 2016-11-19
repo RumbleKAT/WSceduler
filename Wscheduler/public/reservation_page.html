@@ -40,10 +40,56 @@
         $('#show-data').hide();
         // 로그인 한 유저에 맞춰서 이 화면이 켜지면 리쿼스트를 보냄
       $('#edit').click(function(){
+          var title =  $('#show-name').val();
+          var content = $('#show-content').val();
+          var showDate = $('#show-date').val();
+
+          var loadID = document.cookie;
+          var arr1 = loadID.search(';');
+          var arr2 = loadID.search('//');
+          loadID = loadID.slice(arr1+2,arr2);
+
+          alert(loadID);
+
+          title = encodeURI(title);
+          content = encodeURI(content);
+          showDate = encodeURI(showDate);
+          loadID = encodeURI(loadID);
+
+
+          var request = createRequest();
+          request.open('GET','/edit?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
+          request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+          request.send();
+
+          alert(request.responseText);
+
 
       });
 
       $('#delete').click(function(){
+        var title =  $('#show-name').val();
+        var content = $('#show-content').val();
+        var showDate = $('#show-date').val();
+
+        var loadID = document.cookie;
+        var arr1 = loadID.search(';');
+        var arr2 = loadID.search('//');
+        loadID = loadID.slice(arr1+2,arr2);
+
+        alert(loadID);
+
+        title = encodeURI(title);
+        content = encodeURI(content);
+        showDate = encodeURI(showDate);
+        loadID = encodeURI(loadID);
+
+        var request = createRequest();
+        request.open('GET','/delete?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        alert(request.responseText);
 
       });
 
@@ -64,6 +110,7 @@
           loadID = loadID.slice(arr1+2,arr2);
 
 
+          showDate = encodeURI(showDate);
           var request = createRequest();
           request.open('GET','/getWork?showDate='+showDate + "&userID="+loadID,false);
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');

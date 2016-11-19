@@ -93,7 +93,7 @@ app.get("/mailtouser",function(request,response){
   var userID = request.param('userID');
   var email ='';
   future = '2016-11-18';
-  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'"+"AND MM.DATEU="+"'"+future+"'";
+  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo2 MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'"+"AND MM.DATEU="+"'"+future+"'";
   console.log(prequery);
   var email = '';
 
@@ -170,7 +170,7 @@ app.get("/getWork",function(request,response){
   var content = '';
   //쿠키나 정보를 저장해야함
 
-    var query2 = "select MEMO from MemberMemo where DATEU = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
+    var query2 = "select MEMO from MemberMemo2 where DATEU = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
     console.log(query2);
 
     sql.connect(config, function(err){
@@ -187,6 +187,51 @@ app.get("/getWork",function(request,response){
         response.send(result);
       });
     });
+});
+//데이터를 삭제하는 부분
+  app.get('/delete',function(request,response){
+    var title = decodeURIComponent(request.param('title'));
+    var content = decodeURIComponent(request.param('content'));
+    var userID = decodeURIComponent(request.param('userID'));
+    var showDate = decodeURIComponent(request.param('showDate'));
+    var deletememo = title + '//'+ content;
+
+    var query =  'delete from MemberMemo2 where MEMO = '+"'"+deletememo+"'"+"and ID="+"'"+userID+"'"+"and DATEU="+"'"+showDate+"'";
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        result = "삭제되었습니다";
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+
+  });
+
+//수정하는 부분
+  app.get('/edit',function(request,response){
+    var title = decodeURIComponent(request.param('title'));
+    var content = decodeURIComponent(request.param('content'));
+    var userID = decodeURIComponent(request.param('userID'));
+    var showDate = decodeURIComponent(request.param('showDate'));
+    var editmemo = title + '//' + content; //두개를 합침
+
+    var query = "update MemberMemo2 set MEMO="+"'"+ editmemo + "'" + "where ID=" + "'" + userID + "'" + "and DATEU = "+"'" +showDate+"'";
+    console.log(query);
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        result  = "변경되었습니다";
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
 });
 
 //수정 삭제 부분 만들기
@@ -205,7 +250,7 @@ app.get("/sendWork",function(request,response){
     var MEMOTITLE = decodeURIComponent(request.param('eventName'));
     var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
 
-    var query = "INSERT INTO MemberMemo (ID,DATED,MEMO) VALUES ('"+ userID +"','"+DATE+"','"+MEMO+"')";
+    var query = "INSERT INTO MemberMemo2 (ID,DATED,MEMO) VALUES ('"+ userID +"','"+DATE+"','"+MEMO+"')";
 
     sql.connect(config, function(err){
 
