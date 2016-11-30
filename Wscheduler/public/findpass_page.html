@@ -3,45 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=960">
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Istok+Web%7CNunito&amp;subset=all">
-<title>Page 3</title>
-<link rel="stylesheet" type="text/css" href="css/site.20161114184053.css">
-<!--[if lte IE 7]>
-<link rel="stylesheet" type="text/css" href="css/site.20161114184053-lteIE7.css">
-<![endif]-->
+<title>findpass</title>
+<link rel="stylesheet" type="text/css" href="css/site.20161201020917.css">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script>
+var totalID = ''; //유저 아이디
+
+function createRequest(){
+  var request;
+  try{
+    request = new XMLHttpRequest();
+  } catch (exception)
+  {
+    try{
+      request = new ActiveXObject('Msxml2.XMLHTTP');
+    } catch(innerException){
+      request = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+  }
+  return request;
+}
+
+
+  $(document).ready(function(){
+      $('#passbox').hide();
+
+    $('#submitID').click(function(){
+        var userID =  $('#userID').val();
+        totalID = userID;
+        userID = encodeURI(userID);
+
+
+        var request = createRequest();
+        request.open('GET','/findID?userID='+userID,false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        var con = request.responseText;
+
+        alert(con);
+
+        if(con == null || con == '')
+        {
+          result = "아이디가 맞지 않습니다.";
+          alert(result);
+        }
+        else{
+          $('#passbox').show();
+        }
+      });
+
+      $('#alterPASS').click(function(){
+          var nowpass = $('#nowpass').val();
+          var futurepass = $('#futurepass').val();
+        //  var userID =  $('#userID').val();
+
+
+          totalID = encodeURI(totalID);
+          nowpass = encodeURI(nowpass);
+          futurepass = encodeURI(futurepass);
+
+          var request = createRequest();
+          request.open('GET','/findpass?userID='+totalID+'&nowpass='+nowpass+'&futurepass='+futurepass,false);
+          request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+          request.send();
+
+          var con = request.responseText;
+
+          alert(con);
+
+          go_url();
+
+      });
+  });
+  function go_url(){
+         location.href="index.html"  // 페이지 이동...
+      }
+
+
+</script>
+
 </head>
 <body id="body">
-<div class="pos section">
-<div class="vis pos-2 size cont">
-<div class="vis pos-16 size-4 cont-3">
-<div class="cont-2"><p class="para"><span class="font">W scheduler</span><span class="font">&nbsp;</span><span class="font-6">패스워드 찾기</span></p></div>
+<div class="vis pos size cont">
+<div class="pos-2 section">
+<div class="vis pos-3 size-2 cont-2">
+<div class="cont-3"><p class="para"><span class="font">비밀번호</span><span class="font">&nbsp;</span><span class="font">찾기</span></p></div>
 </div>
-<div class="vis pos-5 size-5 cont-15">
-<div class="vis pos-17 size-6 cont-16">
-<div class="cont-2"><p class="para-4"><span class="font-7">W Scheduler</span><span class="font-8">의 패스워드 찾기</span></p></div>
-</div>
-<div class="vis pos-18 size-17 cont-6">
-<picture class="img-6">
-<source srcset="images/locked-512-130.png 1x, images/locked-512-260.png 2x">
-<img src="images/locked-512-130.png" alt="" class="js-3 img-5">
+<div class="vis pos-4 size-3 cont-4">
+<div class="vis pos-5 size-4 cont-5">
+<picture class="img-2">
+<source srcset="images/locked-512-150.png 1x, images/locked-512-300.png 2x">
+<img src="images/locked-512-150.png" alt="" class="js img">
 </picture>
 </div>
-<div class="vis pos-19 size-18 cont-7">
-<div class="cont-2"><p class="para-3"><span class="font-3">ID</span><span class="font-9">를 압력해주세요!</span></p></div>
+<div class="vis pos-6 size-5 cont-6">
+<div class="cont-3"><p class="para-2"><span class="font-3">아이디</span></p></div>
 </div>
-<div class="vis pos-20 size-8 cont-8">
-<input type="text" name="text" class="input">
+<div class="vis pos-7 size-6 cont-7">
+<input value="아이디를 입력해주세요" id="userID"  type="text" name="text" class="input">
 </div>
-<div class="vis pos-21 size-11 cont-10">
-<a class="vis-2 pos-12 size-19 font-10 button" href="#">
-다음
-</a>
+<div class="vis pos-8 size-7 cont-8">
+<input type="button" id="submitID" value ="아이디 확인하기" class="vis-2 pos-9 size-8 font-3 button" href="#">
+</input>
+</div>
+<div class="vis pos-10 size-9 cont-9" id="passbox">
+<div class="vis pos-11 size-10 cont-10">
+<div class="cont-3"><p class="para-3"><span class="font-5">현재 비밀번호</span></p></div>
+</div>
+<div class="vis pos-12 size-6 cont-11">
+<input type="text" name="text" id="nowpass" class="input-2">
+</div>
+<div class="vis pos-13 size-10 cont-12">
+<div class="cont-3"><p class="para-3"><span class="font-5">변경</span><span class="font-5">&nbsp;비밀번호</span></p></div>
+</div>
+<div class="vis pos-14 size-6 cont-13">
+<input type="text" name="text" id="futurepass" class="input-2">
+</div>
+<div class="vis pos-15 size-7 cont-14">
+<input type="button" class="vis-2 pos-9 size-8 font-5 button-2" id="alterPASS" value="비밀번호 변경하기">
+</input>
+</div>
 </div>
 </div>
 </div>
 </div>
 <script type="text/javascript" src="js/jquery.js" defer></script>
-<script type="text/javascript" src="js/page-3.20161114184053.js" defer></script>
+<script type="text/javascript" src="js/index.20161201020917.js" defer></script>
 <script type="text/javascript">
 var ver=RegExp(/Mozilla\/5\.0 \(Linux; .; Android ([\d.]+)/).exec(navigator.userAgent);if(ver&&parseFloat(ver[1])<5){document.getElementsByTagName('body')[0].className+=' whitespacefix';}
 </script>

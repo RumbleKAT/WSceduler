@@ -20,6 +20,33 @@
     #box h1{ margin: 0; padding: 5px; text-align: center;}
   </style>
   <script>
+
+ var loadCookie = '';
+ //쿠키를 설정, 삭제 할때 사용
+    function setCookie(cValue, cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
+      var expire = new Date();
+      expire.setDate(expire.getDate() + cDay);
+      cookies = 'USERID=' + escape(cValue) + '; path=/ ';
+      if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
+      document.cookie = cookies;
+  }
+
+  //쿠키 불러오기
+    function getCookie(){
+      var cName = 'USERID=';
+         var cookieData = document.cookie;
+         var start = cookieData.indexOf(cName);
+         var cValue = '';
+         if(start != -1){
+             start += cName.length;
+             var end = cookieData.indexOf(';', start);
+             if(end == -1)end = cookieData.length;
+             cValue = cookieData.substring(start, end);
+         }
+         loadCookie = unescape(cValue);
+  }
+
+
 //아래 버튼 만들어서 수정, 삭제 버튼 만들기
   function createRequest(){
     var request;
@@ -37,6 +64,16 @@
   }
 
     $(document).ready(function(){
+
+      //처음에 로그인 할때 쿠키에서
+      getCookie();//멤버넘버를 저장후 메모넘버를 알아야 하므로 한번더 호출해야함
+
+      var request = createRequest();
+      request.open('GET','/edit?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
+      request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      request.send();
+
+
         $('#show-data').hide();
         // 로그인 한 유저에 맞춰서 이 화면이 켜지면 리쿼스트를 보냄
       $('#edit').click(function(){
@@ -152,9 +189,15 @@
             var eventContent = $('#event-content').val();
             var eventDate = $('#event-date').val();
 
+            var loadID = document.cookie;
+            var arr1 = loadID.search(';');
+            var arr2 = loadID.search('//');
+            loadID = loadID.slice(arr1+2,arr2);
+
             eventName = encodeURI(eventName);
             eventDate = encodeURI(eventDate);
             eventContent = encodeURI(eventContent);
+            loadID = encodeURI(loadID);
 
             var request = createRequest();
             request.open('GET','/sendWork?eventDate='+eventDate+'&eventName='+

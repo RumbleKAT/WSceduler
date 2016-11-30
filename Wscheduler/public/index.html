@@ -8,16 +8,152 @@
 <link rel="stylesheet" type="text/css" href="css/site.20161114184053.css">
 <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="js/jquery.cookie.js"></script>
+<script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
 <script>
-function removeCookie(){
-  var date = new Date();
-  date.setDate(date.getDate() - 1);
+Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
+//인덱스에서 이메일을 받고 클라이언트에다 저장 멤버매모랑 메모랑 조인후 데이터 받는거로
 
-  var willCookie = '';
-  willCookie = 'expires=' + date.toUTCString();
-
-  document.cookie = willCookie;
+//쿠키를 설정
+  function setCookie(cValue, cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
+    var expire = new Date();
+      expire.setDate(expire.getDate() + cDay);
+    cookies = 'USERID=' + escape(cValue) + '; path=/ ';
+    if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
+    document.cookie = cookies;
 }
+//쿠키 불러오기
+  function getCookie(){
+
+    var cName = 'USERID=';
+       var cookieData = document.cookie;
+       var start = cookieData.indexOf(cName);
+       var cValue = '';
+       if(start != -1){
+           start += cName.length;
+           var end = cookieData.indexOf(';', start);
+           if(end == -1)end = cookieData.length;
+           cValue = cookieData.substring(start, end);
+       }
+       return unescape(cValue);
+}
+
+    function loginWithKakao() {
+      // 로그인 창을 띄웁니다.
+      Kakao.Auth.login({
+        success: function(authObj) {
+         // 로그인 성공시, API를 호출합니다.
+         Kakao.API.request({
+           url: '/v1/user/me',
+           success: function(res) {
+            var copy = JSON.parse(JSON.stringify(res));
+            var kakaoID = copy.properties.ID;
+            var kakaoNick = copy.properties.nickname;
+
+            //kakao테이블에 정보를 전달
+
+            var request = createRequest();
+            request.open('GET','/kakaoSelect?userID='+kakaoID,false);
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+            request.send();
+
+            var con = request.responseText;
+
+            if(con == null || con == '')
+            {
+              result = "처음오셨군요! \n 잠시만 데이터를 입력하니 기다려주세요!.";
+              alert(result);
+
+              var request = createRequest();
+              request.open('GET','/kakaoSelect?userID='+kakaoID,false);
+              request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+              request.send();
+
+              var kakaoJoin = request.responseText;
+              alert("환영합니다~!"+ kakaoJoin+"님");
+
+              var request = createRequest();
+              request.open('GET','/ConnectMemberKakao?userID='+kakaoID,false);
+              request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+              request.send();
+
+              //쿠키로 저장하기
+
+              go_url();
+
+            }
+            else{  //데이터가 있을 경우
+              alert("환영합니다!");
+              alert(con);//Result에 ID로 받음
+
+              //member테이블로 데이터 호출
+              var request = createRequest();
+              request.open('GET','/ConnectMemberKakao?userID='+kakaoID,false);
+              request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+              request.send();
+
+              //멤버테이블에서 받음
+
+              //데이터 서치 후 있을 시 카카오 메시지를 보내고 없으면 안보냄
+
+
+            }
+            //sendTo();
+           },
+           fail: function(error) {
+             alert(JSON.stringify(error));
+           }
+         });
+       },
+       fail: function(err) {
+         alert(JSON.stringify(err));
+       }
+     });
+    };
+  //카카오톡 메시지 보내기
+  function sendTo(){
+  // 호출한 데이터를 변수에 저장하기
+  //  var userdo = "해야하는일";
+  //  var userDate = "2016-11-30";
+    var request = createRequest();
+    request.open('GET','/ConnectMEMO?userID='+kakaoID,false);
+    request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+    request.send();
+
+    var con =  request.responseText;
+    var search1 = "MEMO=";
+    var search2 = "MEMODATE=";
+    var search3 = "END";
+    var memo = con.slice(search1+5,search2);
+    var memodate = con.slice(search2+9,search3);
+
+    alert(memo + memodate); //메모와 날짜를 꺼냄
+    /*
+          Kakao.Auth.login({
+              //// 메모챗을 발송하기 위해서는 로그인할때 추가적인 scope 을 얻어야 한다.
+              scope: "PROFILE,TALK_MESSAGE",
+              success: function(res) {
+                  Kakao.API.request({
+                      url: '/v1/api/talk/memo/send',
+                      data: {
+                          template_id: '2039',
+                          args: '{"${USER_DO}": "'+userdo+'","${DATE}": "'+userDate+'"}'
+                      },
+                      success: function(res) {
+                          alert('success!');
+                          console.log(res);
+                      },
+                      fail: function(error) {
+                          alert('error! \n' + JSON.stringify(error));
+                          console.log(error);
+                      }
+                  })
+              },
+              fail: function(error) {
+                  console.log(error);
+              }
+          });
+          */
+      }
 
 function go_url(){
        location.href="reservation_page.html"  // 페이지 이동...
@@ -39,7 +175,6 @@ function createRequest(){
 }
 
   $(document).ready(function(){
-    removeCookie();
     alert(document.cookie);
     $('#after').hide();
     $('#before').show();
@@ -70,12 +205,13 @@ function createRequest(){
         var date = new Date();
         date.setDate(date.getDate()+1);
 
+/*
         var willcookie = '';
         willcookie += userID+'//';
         willcookie += 'expires=' + date.toUTCString();
         //쿠키를 저장
         document.cookie = willcookie;
-
+*/
         alert('cookie:'+document.cookie);
 
         var request = createRequest();
@@ -131,14 +267,13 @@ function createRequest(){
 <input type="text" name="text" id="userPASS" class="input-2">
 </div>
 <div class="vis pos-11 size-11 cont-11">
-<input type= "submit" id ="Login" class="vis-2 pos-12 size-12 font-4 button" >
-로그인
+<input type= "submit" value="로그인" id ="Login" class="vis-2 pos-12 size-12 font-4 button" >
 </input>
 </div>
 <div class="vis pos-13 size-13 cont-12">
 <picture class="img-4">
 <source srcset="images/kakao_account_login_btn_large_wide_ov-239.png 1x, images/kakao_account_login_btn_large_wide_ov-478.png 2x">
-<img src="images/kakao_account_login_btn_large_wide_ov-239.png" alt="" class="js-2 img-3">
+<img src="images/kakao_account_login_btn_large_wide_ov-239.png" alt="" onclick="loginWithKakao()" class="js-2 img-3">
 </picture>
 </div>
 <div class="vis pos-14 size-14 cont-2">
