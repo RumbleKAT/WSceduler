@@ -38,6 +38,8 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
 }
 
     function loginWithKakao() {
+      var kakaoID = '';
+      var kakaoNick = '';
       // 로그인 창을 띄웁니다.
       Kakao.Auth.login({
         success: function(authObj) {
@@ -46,35 +48,46 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
            url: '/v1/user/me',
            success: function(res) {
             var copy = JSON.parse(JSON.stringify(res));
-            var kakaoID = copy.properties.ID;
-            var kakaoNick = copy.properties.nickname;
+             kakaoID = copy.id;
+             kakaoNick = copy.properties.nickname;
+
+            alert("ID"+kakaoID +":"+ "닉네임"+kakaoNick);
 
             //kakao테이블에 정보를 전달
 
             var request = createRequest();
-            request.open('GET','/kakaoSelect?userID='+kakaoID,false);
+            kakaoID = encodeURI(kakaoID);
+
+            request.open('GET','/kakaoSelect?kakaoID='+kakaoID,false);
             request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
             request.send();
 
             var con = request.responseText;
 
+            alert(con);
+
             if(con == null || con == '')
             {
               result = "처음오셨군요! \n 잠시만 데이터를 입력하니 기다려주세요!.";
               alert(result);
+//카카오테이블이 추가하는 부분
 
+              kakaoNick = encodeURI(kakaoNick);
               var request = createRequest();
-              request.open('GET','/kakaoSelect?userID='+kakaoID,false);
+              request.open('GET','/kakaoInsert?KakaoID='+kakaoID+'&kakaoNick='+kakaoNick,false);
               request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
               request.send();
 
               var kakaoJoin = request.responseText;
-              alert("환영합니다~!"+ kakaoJoin+"님");
-
+              alert(kakaoJoin);
+//멤버 테이블에 추가하는 부분
               var request = createRequest();
-              request.open('GET','/ConnectMemberKakao?userID='+kakaoID,false);
+              request.open('GET','/memberInsertKakao?KakaoID='+kakaoID,false);
               request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
               request.send();
+
+              var con = request.responseText; //멤버 넘버가 부여됨
+              alert(con);
 
               //쿠키로 저장하기
 
@@ -83,15 +96,20 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
             }
             else{  //데이터가 있을 경우
               alert("환영합니다!");
-              alert(con);//Result에 ID로 받음
-
+              //alert(con);//Result에 ID로 받음
+              kakaoID = encodeURI(kakaoID);
               //member테이블로 데이터 호출
               var request = createRequest();
-              request.open('GET','/ConnectMemberKakao?userID='+kakaoID,false);
+              request.open('GET','/ConnectMemberKakao?kakaoID='+kakaoID,false);
               request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
               request.send();
 
-              //멤버테이블에서 받음
+              var con = request.responseText;
+              alert(con);
+
+            //  var slice
+
+              //멤버테이블에서 멤버 넘버를 받음 받음
 
               //데이터 서치 후 있을 시 카카오 메시지를 보내고 없으면 안보냄
 
@@ -175,7 +193,7 @@ function createRequest(){
 }
 
   $(document).ready(function(){
-    alert(document.cookie);
+  //  alert(document.cookie);
     $('#after').hide();
     $('#before').show();
 
@@ -185,7 +203,7 @@ function createRequest(){
       var result ='';
 
       var request = createRequest();
-      request.open('GET','/checkschedule?userID='+userID + "&userPASS="+userPASS,false);
+      request.open('GET','/checkUSERID?userID='+userID + "&userPASS="+userPASS,false);
       request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
       request.send();
 
@@ -202,23 +220,29 @@ function createRequest(){
         alert(result);
         $('#before').hide();
 
+        var request = createRequest();
+        request.open('GET','/ConnectMember?userID='+userID,false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        var con = request.responseText;
+        alert(con);
+
         var date = new Date();
         date.setDate(date.getDate()+1);
 
-/*
-        var willcookie = '';
-        willcookie += userID+'//';
-        willcookie += 'expires=' + date.toUTCString();
-        //쿠키를 저장
-        document.cookie = willcookie;
-*/
-        alert('cookie:'+document.cookie);
 
+
+    //    alert('cookie:'+document.cookie);
+
+        //getuser 멤버넘버를 부여받음
+
+/*
         var request = createRequest();
         request.open('GET','/mailtouser?userID='+userID,false);
         request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         request.send();
-
+*/
         go_url();
 
       }

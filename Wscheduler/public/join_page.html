@@ -16,17 +16,20 @@
   var count = 1;
 
   function checkBlank(){
-    var userID = document.getElementByID('userID').value;
-    var userPASS = document.getElementByID('userPASS').value;
-    var userNAME = document.getElementByID('userNAME').value;
-    var userEMAIL = document.getElementByID('userEMAIL').value;
-    var userPHONE = document.getElementByID('userPHONE').value;
+    var userID =  $('#userID').val();
+    var userPASS = $('#userPASS').val();
+    var userNAME = $('#userNAME').val();
+    var userEMAIL = $('#userEMAIL').val();
+    var userPHONE = $('#userPHONE').val();
 
     if(userID == '' || userPASS =='' || userNAME =='' || userEMAIL == '' || userPHONE )
     {
       alert("빈공간을 써주세요!");
     }
   }
+  function go_url(){
+         location.href="index.html"  // 페이지 이동...
+      }
 
   function createRequest(){
     var request;
@@ -56,49 +59,66 @@
       else
       {
       var test = userID;
+      test = encodeURI(test);
       var checkcount= 0;
       var request = createRequest();
-      request.open('GET','/checkID?userID='+userID,false);
+      request.open('GET','/checkID?userID='+test,false);
       request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
       request.send();
 
       var con = request.responseText;
-      alert(con);
-      var search = con.split("/");
-      var temp = new Array(search.length);
-      for(var i=1;i<search.length;i++){
-        temp[i] = search[i];
-        if(temp[i] == test){
-          alert('이미 있는 아이디입니다.');
-          break;
-        }
-        else{
-          checkcount++;
-        }
-      }
-      if(checkcount == search.length-1)
+
+      if(con == null || con == '')
       {
-        alert('사용하실수 있는 아이디입니다.');
+        alert("사용 가능한 아이디입니다.");
+        count++;
+        alert(count);
       }
-      count = 0;
+      else {
+        alert("이미 존재하는 아이디입니다.");
       }
+    }
     });
 
     $('#insertform').click(function(event){
+      var userID =  $('#userID').val();
+      var userPASS = $('#userPASS').val();
+      var userNAME = $('#userNAME').val();
+      var userEMAIL = $('#userEMAIL').val();
+      var userPHONE = $('#userPHONE').val();
 
-      checkBlank();
+      userID = encodeURI(userID);
+      userPASS = encodeURI(userPASS);
+      userNAME = encodeURI(userNAME);
+      userEMAIL = encodeURI(userEMAIL);
+      userPHONE = encodeURI(userPHONE);
+
+    //  checkBlank();
 
       if(count == 1)
       {
         alert("아이디 중복확인을 해주세요!");
       }
-      else{
 
+      else{
+      // 유저 데이터 전달
       var request = createRequest();
-      request.open('POST','/signupAction',false);
+      request.open('get','/signup?userID='+userID+'&userPASS='+userPASS+'&userNAME='+userNAME+'&userEMAIL='+userEMAIL+'&userPHONE='+userPHONE,false);
       request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-      request.send('userID' + userID + 'userPASS' + userPASS
-                    + 'userNAME' + userNAME + 'userEMAIL' + userEMAIL + "userPHONE" + userPHONE );
+      request.send();
+
+      var con = request.responseText;
+      alert(con);
+      // 유저 아이디를 멤버 테이블에 전달
+      var request = createRequest();
+      request.open('get','/memberInsertJoin?Join_ID='+userID,false);
+      request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+      request.send();
+
+      var con = request.responseText;
+      alert(con);
+
+      go_url();//메인 페이지로 이동!
       }
     });
   });
@@ -120,7 +140,6 @@
 <div class="cont-2"><p class="para"><span class="font">W scheduler </span><span class="font-2">회원가입</span></p></div>
 </div>
 </div>
-<form action="/signupAction" method="post" id ="myform">
 <div class="vis pos-5 size-5 cont-5">
 <div class="vis pos-6 size-6 cont-6">
 <div class="cont-2"><p class="para-2"><span class="font-3">사용자 </span><span class="font-4">정보입력</span></p></div>
@@ -141,7 +160,7 @@
 <div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-5">비밀번호</span><span class="font-5">&nbsp;:</span></p></div>
 </div>
 <div class="vis pos-12 size-13 cont-11">
-<input type="password" name="userPASS" class="input-2">
+<input type="password" id ="userPASS" name="userPASS" class="input-2">
 </div>
 </div>
 <div class="vis pos-13 size-12 cont-2">
@@ -149,7 +168,7 @@
 <div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-5">이름</span><span class="font-5">&nbsp;:</span></p></div>
 </div>
 <div class="vis pos-12 size-13 cont-13">
-<input type="text" name="userNAME" class="input-2">
+<input type="text" id="userNAME" name="userNAME" class="input-2">
 </div>
 </div>
 <div class="vis pos-11 size-12 cont-2">
@@ -157,7 +176,7 @@
 <div class="cont-2"><p class="para-3"><span class="font-5">* E-Mail :</span></p></div>
 </div>
 <div class="vis pos-14 size-13 cont-15">
-<input type="text" name="userEMAIL" class="input-2">
+<input type="text" id="userEMAIL" name="userEMAIL" class="input-2">
 </div>
 </div>
 <div class="vis pos-15 size-12 cont-2">
@@ -165,7 +184,7 @@
 <div class="cont-2"><p class="para-3"><span class="font-5">* </span><span class="font-7">전화번호</span><span class="font-5">:</span></p></div>
 </div>
 <div class="vis pos-8 size-13 cont-17">
-<input type="text" name="userPHONE" class="input-2">
+<input type="text" id="userPHONE" name="userPHONE" class="input-2">
 </div>
 </div>
 <div class="vis pos-16 size-14 cont-2">
@@ -177,7 +196,6 @@
 </div>
 </div>
 </div>
-</form>
 </div>
 </div>
 <script type="text/javascript" src="jquery.js" defer></script>

@@ -96,7 +96,7 @@ app.get("/findpass",function(request,response){
 
 });
 //회원가입 버튼을 누를시
-app.get("/checkschedule",function(request,response){
+app.get("/checkUSERID",function(request,response){
    //  nowuser 로그인을 하면 뜨는 걸로
    var result = '';
    var userID = request.param('userID');
@@ -132,9 +132,11 @@ app.get("/checkschedule",function(request,response){
      }));
    });
  });
+
 //메모를 로딩하는 부분 메모를 찾는 부분과 사용자 정보를 찾는 부분을 만듬 -필
 app.get("/mailtouser",function(request,response){
-
+ // 멤버에서 멤버조인을 찾는 부분을 하고 이거 뒤에
+ // 멤버 메모에서 메모와 데이트를 찾음 이거 먼저
   var userID = 'reki318'; //request.param('userID');
   var email ='';
   future = '2016-11-23';
@@ -177,11 +179,11 @@ app.get("/mailtouser",function(request,response){
 
 //카카오 로그인 부분
 app.get("/kakaoSelect",function(request,response){
-  var KakaoID = request.param('userID');
+  var KakaoID = request.param('kakaoID');
 
   var result = ''; //멤버넘버를 저장하는 변수
-  var query = "select ID from KakaoJoin where Kakao_ID = " +"'"+ KakaoID+"'" ;//로드 될떄
-
+  var query = "select ID from KakaoJoin where ID = " +"'"+ KakaoID+"'" ;//로드 될떄
+  console.log(query);
   sql.connect(config, function(err){
 
     var request = new sql.Request();
@@ -198,11 +200,13 @@ app.get("/kakaoSelect",function(request,response){
   });
 });
 
+
 //member테이블로 연결할때 사용하는 부분
 app.get("/ConnectMemberKakao",function(request,response){
-  var KakaoID = request.param('userID');//카카오 ID를 입력
+  var kakaoID = request.param('kakaoID');//카카오 ID를 입력
   var result = ''; //멤버넘버를 저장하는 변수
-  var query = "select MemberNo from member where Kakao_ID = " +"'"+ KakaoID+"'" ;//로드 될떄
+  var query = "select MemberNo from member where Kakao_ID = " +"'"+ kakaoID+"'" ;//로드 될떄
+  console.log(query);
 
   sql.connect(config, function(err){
 
@@ -212,11 +216,12 @@ app.get("/ConnectMemberKakao",function(request,response){
 
 
     request.on('row', function(row){
-      result = row.MemberNo;
+      result += row.MemberNo;
     });
 
     request.on('done',function(returnValue){
-      response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+      result += "////";
+      response.send(result); //멤버 넘버가 부여
   });
 });
 });
@@ -249,7 +254,7 @@ app.get("/ConnectMEMO",function(request,response){
 });
 //멤버테이블과 연결
 app.get("/ConnectMember",function(request,response){
-  var userID = request.param('userID');//카카오 ID를 입력
+  var userID = decodeURIComponent(request.param('userID'));//카카오 ID를 입력
   var result = ''; //멤버넘버를 저장하는 변수
   var query = "select MemberNo from member where Join_ID = " +"'"+ userID+"'" ;//로드 될떄
 
@@ -261,10 +266,11 @@ app.get("/ConnectMember",function(request,response){
 
 
     request.on('row', function(row){
-      result = row.MemberNo;
+      result += row.MemberNo;
     });
 
     request.on('done',function(returnValue){
+      result += '////';
       response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
@@ -272,10 +278,11 @@ app.get("/ConnectMember",function(request,response){
 
 //카카오 테이블 삽입 부분
 app.get("/kakaoInsert",function(request,response){
-    var kakaoID = request.param('userID');
-    var kakaoNick = request.param('kakaoNick');
-
+    var kakaoID = decodeURIComponent(request.param('KakaoID'));
+    var kakaoNick = decodeURIComponent(request.param('kakaoNick'));
     var query = "INSERT INTO KakaoJoin (ID,NICKNAME) VALUES ('"+ kakaoID + "','" + kakaoNick +"')";
+    console.log(query);
+    var result  ='';
 
     sql.connect(config, function(err){
 
@@ -284,22 +291,65 @@ app.get("/kakaoInsert",function(request,response){
       request.query(query);
 
       request.on('done',function(returnValue){
-        var result = kakaoNick;
+        result = "KakaoJoin테이블에 정보입력!"
         response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
-
 });
+
+//카카오 테이블 삽입 부분
+app.get("/memberInsertKakao",function(request,response){
+    var kakaoID = request.param('KakaoID');
+
+    var query = "INSERT INTO member (Kakao_ID) VALUES  ('"+ kakaoID +"'"+")";
+    var result  ='';
+    console.log(query);
+
+    sql.connect(config, function(err){
+
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        result = "Kakao정보를 member테이블에 정보입력!"
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+
+//카카오 테이블 삽입 부분
+app.get("/memberInsertJoin",function(request,response){
+    var Join_ID = request.param('Join_ID');
+    var Kakao_ID = '';
+
+    var query = "INSERT INTO member (Join_ID) VALUES ('"+ Join_ID +"'"+")";
+    var result  ='';
+    console.log(query);
+
+    sql.connect(config, function(err){
+
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        result = "Join_ID정보를 member테이블에 정보입력!"
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+
+
+
 
 //아이디중복확인
 app.get("/checkID",function(request,response){
-  var responseResult;
-  var count = 0;
-  var CheckID = new Array(count);
+  var result = '';
   var userID = request.param('userID');
+  var query = "select ID from memberJoin where ID="+"'"+userID+"'";
 
-  var query = "select * from memberJoin ";
-  console.log(userID);
+  console.log(query);
 
   sql.connect(config, function(err){
     var request = new sql.Request();
@@ -307,16 +357,11 @@ app.get("/checkID",function(request,response){
     request.query(query);
 
     request.on('row', function(row){
-      CheckID[count] = row.ID;
-      count++;
+      result = row.ID;
     });
 
       request.on('done',function(returnValue){
-        for(var i = 0;i<count;i++)
-        {
-          responseResult += "/" + CheckID[i] ;
-        }
-        response.send(responseResult); //스케줄을 조절하는 페이지를 버튼으로 이동
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
   });
 });
@@ -402,7 +447,7 @@ app.get("/sendWork",function(request,response){
     var MEMOTITLE = decodeURIComponent(request.param('eventName'));
     var userID = decodeURIComponent(request.param('loadID'));
     var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
-
+    //메모 번호를 받고 쿠키에 저장 후 멤버 메모와 메모를 조인 후 합침
     var query = "INSERT INTO MemberMemo2 (ID,DATEU,MEMO) VALUES ('"+ userID +"','"+DATE+"','"+MEMO+"')";
 
     sql.connect(config, function(err){
@@ -417,33 +462,49 @@ app.get("/sendWork",function(request,response){
   });
 });
 
-//회원가입 하는부분
-app.post("/signupAction",function(request,response){
-
-  var ID =  request.param('userID');
-  var PASS = request.param('userPASS');
-  var NAME =  request.param('userNAME');
-  var EMAIL =  request.param('userEMAIL');
-  var TEL = request.param('userPHONE');
-  nowuser = ID;
-  var query = "INSERT INTO memberJoin (ID,PASS,NAME,EMAIL,TEL) VALUES ('"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
+//이미 있는 유저의 아이디를 입력 받아 쿠키로 전달
+app.get("/getuser",function(request,response){
+  var Join_ID = decodeURIComponent(request.param('Join_ID'));
+  var Kakao_ID = decodeURIComponent(request.param('Kakao_ID'));
+  var query = "select MemberNo from member where Join_ID = " +"'"+ Join_ID+"'" + "OR Kakao_ID =" +"'"+ Kakao_ID + "'";
   console.log(query);
+  var result  = '';
 
   sql.connect(config, function(err){
     var request = new sql.Request();
     request.stream = true;
     request.query(query);
 
-    var result = NAME +"님 가입을 축하합니다."; //시간을 다루는 페이지로 이동
-
-    //여기 좀 꾸미기
-    var data = "<html><head><title>Welcome_WSCHEDULER</title></head>"
-    data += "<h1>"+result+"</h1>";
-    data += "<a href=/index.html>" + "처음 페이지에서 로그인해주세요!" + "</a>";
+    request.on('row', function(row){
+      result = row.MemberNo
+    });
 
     request.on('done',function(returnValue){
-      data += "</html>";
-      response.send(data); //스케줄을 조절하는 페이지를 버튼으로 이동
+      response.send(result);
+    });
+  });
+});
+
+//회원가입 하는부분
+app.get("/signup",function(request,response){
+
+  var ID =  decodeURIComponent(request.param('userID'));
+  var PASS = decodeURIComponent(request.param('userPASS'));
+  var NAME =  decodeURIComponent(request.param('userNAME'));
+  var EMAIL =  decodeURIComponent(request.param('userEMAIL'));
+  var TEL = decodeURIComponent(request.param('userPHONE'));
+  var query = "INSERT INTO memberJoin (ID,PASS,NAME,EMAIL,TEL) VALUES ('"+ ID +"','"+PASS+"','"+NAME+"','"+EMAIL+"','"+TEL+"')";
+  console.log(query);
+
+  var result = NAME +"님 가입을 축하합니다."; //시간을 다루는 페이지로 이동
+
+  sql.connect(config, function(err){
+    var request = new sql.Request();
+    request.stream = true;
+    request.query(query);
+
+    request.on('done',function(returnValue){
+      response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
 });
