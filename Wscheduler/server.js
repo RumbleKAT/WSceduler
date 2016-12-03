@@ -95,6 +95,7 @@ app.get("/findpass",function(request,response){
 
 
 });
+
 //회원가입 버튼을 누를시
 app.get("/checkUSERID",function(request,response){
    //  nowuser 로그인을 하면 뜨는 걸로
@@ -114,7 +115,7 @@ app.get("/checkUSERID",function(request,response){
           nowID = row.ID
         nowPASS = row.PASS
         nowEMAIL = row.EMAIL
-        result = nowID + "/" + nowPASS;
+        result = nowID + "/" + nowPASS + "/" + nowEMAIL;
      });
 
        request.on('done',function(returnValue){
@@ -137,7 +138,7 @@ app.get("/checkUSERID",function(request,response){
 app.get("/mailtouser",function(request,response){
  // 멤버에서 멤버조인을 찾는 부분을 하고 이거 뒤에
  // 멤버 메모에서 메모와 데이트를 찾음 이거 먼저
-  var userID = 'reki318'; //request.param('userID');
+  var userID = request.param('userID');
   var email ='';
   future = '2016-11-23';
   var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo2 MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'"+"AND MM.DATEU="+"'"+future+"'";
@@ -200,14 +201,13 @@ app.get("/kakaoSelect",function(request,response){
   });
 });
 
-
 //member테이블로 연결할때 사용하는 부분
 app.get("/ConnectMemberKakao",function(request,response){
   var kakaoID = request.param('kakaoID');//카카오 ID를 입력
   var result = ''; //멤버넘버를 저장하는 변수
   var query = "select MemberNo from member where Kakao_ID = " +"'"+ kakaoID+"'" ;//로드 될떄
   console.log(query);
-
+  result += "////";
   sql.connect(config, function(err){
 
     var request = new sql.Request();
@@ -220,7 +220,7 @@ app.get("/ConnectMemberKakao",function(request,response){
     });
 
     request.on('done',function(returnValue){
-      result += "////";
+
       response.send(result); //멤버 넘버가 부여
   });
 });
@@ -228,36 +228,32 @@ app.get("/ConnectMemberKakao",function(request,response){
 //메모 버튼을 토대로 메모테이블의 데이터를 가져옴
 app.get("/ConnectMEMO",function(request,response){
     var MEMONO = request.param('MEMONO');//카카오 ID를 입력
+    var MemberNo = request.param('MemberNo');
+    var date = '2016-12-03';
     var result = '';
-    var query = "select MEMO, MEMODATE from member where MEMONO = " +"'"+ MEMONO+"'" ;//로드 될떄
-
+    var query = "select M.MEMO  from MEMO M , Member_MEMO MM where M.MEMONO = MM.MEMONO AND MM.MemberNo="+"'"+MemberNo+"'"+"AND M.MEMODATE="+"'"+date+"'";
     sql.connect(config, function(err){
 
       var request = new sql.Request();
       request.stream = true;
       request.query(query);
 
-
       request.on('row', function(row){
-        result += "MEMO=";
-        result += row.MEMO;
-        result += "MEMODATE="
-        result += row.MEMODATE;
-        result += "END";
+        result = row.MEMO;
       });
 
       request.on('done',function(returnValue){
         response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
       });
     });
-
 });
+
 //멤버테이블과 연결
 app.get("/ConnectMember",function(request,response){
   var userID = decodeURIComponent(request.param('userID'));//카카오 ID를 입력
   var result = ''; //멤버넘버를 저장하는 변수
   var query = "select MemberNo from member where Join_ID = " +"'"+ userID+"'" ;//로드 될떄
-
+  result += '////';
   sql.connect(config, function(err){
 
     var request = new sql.Request();
@@ -270,7 +266,7 @@ app.get("/ConnectMember",function(request,response){
     });
 
     request.on('done',function(returnValue){
-      result += '////';
+
       response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
@@ -297,7 +293,7 @@ app.get("/kakaoInsert",function(request,response){
   });
 });
 
-//카카오 테이블 삽입 부분
+//카카오 멤버 테이블 삽입 부분
 app.get("/memberInsertKakao",function(request,response){
     var kakaoID = request.param('KakaoID');
 
@@ -318,7 +314,7 @@ app.get("/memberInsertKakao",function(request,response){
   });
 });
 
-//카카오 테이블 삽입 부분
+//멤버 테이블 삽입 부분
 app.get("/memberInsertJoin",function(request,response){
     var Join_ID = request.param('Join_ID');
     var Kakao_ID = '';
@@ -366,44 +362,89 @@ app.get("/checkID",function(request,response){
   });
 });
 
-//메모를 불러오는 부분 -필
+//일정조회
 app.get("/getWork",function(request,response){
-  var DATE = decodeURIComponent(request.param('showDate'));
-  var ID = decodeURIComponent(request.param('userID'));
-  var email ='';
-  var Memo = '';
-  var title = '';
-  var content = '';
-  //쿠키나 정보를 저장해야함
-  //조인해야함
-    var query2 = "select MEMO from MEMO where MEMODATE = " +"'"+ DATE+"'" + "AND ID =" +"'"+ ID + "'";//로드 될떄
-    console.log(query2);
+  var title = decodeURIComponent(request.param('title'));
+  var content = decodeURIComponent(request.param('content'));
+  var MemberNo = decodeURIComponent(request.param('MemberNo'));
+  var showDate = decodeURIComponent(request.param('showDate'));
+  var showmemo = title + '//'+ content;
+  var result ='';
+  result += "////";
+
+  var query = "select M.MEMONO from Member_MEMO MM ,MEMO M where M.MEMONO = MM.MEMONO AND M.MEMODATE="+"'"+showDate+"'"+"AND MM.MemberNo="+"'"+MemberNo+"'";
+    console.log(query);
 
     sql.connect(config, function(err){
       var request = new sql.Request();
       request.stream = true;
-      request.query(query2);
+      request.query(query);
 
       request.on('row', function(row){
-        Memo = row.MEMO
+        result += row.MEMONO
       });
 
       request.on('done',function(returnValue){
-        var result = Memo;
         response.send(result);
       });
     });
 });
-//데이터를 삭제하는 부분 -필
+app.get("/getWork2",function(request,response){
+  var memono = decodeURIComponent(request.param('memono'));
+  var showDate = decodeURIComponent(request.param('showDate'));
+  var result ='';
+  var query = "select M.MEMO from Member_MEMO MM ,MEMO M where MM.MEMONO = M.MEMONO AND M.MEMODATE="+"'"+showDate+"'"+"AND MM.MEMONO="+"'"+memono+"'";
+    console.log(query);
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('row', function(row){
+        result = row.MEMO
+      });
+
+      request.on('done',function(returnValue){
+        response.send(result);
+      });
+    });
+});
+
+
+//데이터를 삭제하는 부분
 app.get('/delete',function(request,response){
     var title = decodeURIComponent(request.param('title'));
     var content = decodeURIComponent(request.param('content'));
-    var userID = decodeURIComponent(request.param('userID'));
     var showDate = decodeURIComponent(request.param('showDate'));
+    var result = '';
+    result += '////';
     var deletememo = title + '//'+ content;
 
     //조인해야됨
-    var query =  'delete from MEMO where MEMO = '+"'"+deletememo+"'"+"and ID="+"'"+userID+"'"+"and DATEU="+"'"+showDate+"'";
+    var query = "select MEMONO from MEMO where MEMO = " +"'"+ deletememo+"'"+"and MEMODATE="+"'"+showDate+"'" ;//로드 될떄
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('row', function(row){
+        result += row.MEMONO
+      });
+
+      request.on('done',function(returnValue){
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+app.get('/delete2',function(request,response){
+    var title = decodeURIComponent(request.param('title'));
+    var content = decodeURIComponent(request.param('content'));
+    var showDate = decodeURIComponent(request.param('showDate'));
+    var deletememo = title + '//'+ content;
+    //조인해야됨
+    var query =  'delete from MEMO where MEMO = '+"'"+deletememo+"'"+"and MEMODATE="+"'"+showDate+"'";
 
     sql.connect(config, function(err){
       var request = new sql.Request();
@@ -411,13 +452,32 @@ app.get('/delete',function(request,response){
       request.query(query);
 
       request.on('done',function(returnValue){
-        result = "삭제되었습니다";
+        result = "메모테이블에서 데이터가 삭제되었습니다";
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+app.get('/delete3',function(request,response){ //유저의 메모넘버까지 삭제
+    var MemberNo = decodeURIComponent(request.param('MemberNo'));
+    var MEMONO = decodeURIComponent(request.param('MEMONO'));
+
+    //조인해야됨
+    var query =  'delete from Member_MEMO where MEMONO = '+"'"+MEMONO+"'"+"and MemberNo="+"'"+MemberNo+"'";
+
+    sql.connect(config, function(err){
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        result = "멤버메모테이블에서 데이터가 삭제되었습니다";
         response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
 });
 
-//수정하는 부분 -필
+
+//수정하는 부분
   app.get('/edit',function(request,response){
     var title = decodeURIComponent(request.param('title'));
     var content = decodeURIComponent(request.param('content'));
@@ -425,7 +485,7 @@ app.get('/delete',function(request,response){
     var showDate = decodeURIComponent(request.param('showDate'));
     var editmemo = title + '//' + content; //두개를 합침
 
-    var query = "update MemberMemo2 set MEMO="+"'"+ editmemo + "'" + "where ID=" + "'" + userID + "'" + "and DATEU = "+"'" +showDate+"'";
+    var query = "update o set o.MEMO = "+"'"+editmemo+"',"+"o.MEMODATE="+"'"+showDate+"'"+ "from Member_MEMO as t inner join MEMO as o on t.MEMONO = o.MEMONO";
     console.log(query);
 
     sql.connect(config, function(err){
@@ -434,21 +494,65 @@ app.get('/delete',function(request,response){
       request.query(query);
 
       request.on('done',function(returnValue){
-        result  = "변경되었습니다";
+        result  = "데이터가 수정되었습니다";
         response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
 });
 
-//삽입하는 부분 -필
+
+
+//삽입하는 부분
 app.get("/sendWork",function(request,response){
     var DATE = decodeURIComponent(request.param('eventDate'));
     var MEMOCONTENT = decodeURIComponent(request.param('eventContent'));
     var MEMOTITLE = decodeURIComponent(request.param('eventName'));
-    var userID = decodeURIComponent(request.param('loadID'));
     var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
     //메모 번호를 받고 쿠키에 저장 후 멤버 메모와 메모를 조인 후 합침
-    var query = "INSERT INTO MemberMemo2 (ID,DATEU,MEMO) VALUES ('"+ userID +"','"+DATE+"','"+MEMO+"')";
+    var query = "INSERT INTO MEMO (MEMO,MEMODATE) VALUES ('"+MEMO+"','"+DATE+"')";
+    var result ="메모 테이블로 데이터 저장"
+    sql.connect(config, function(err){
+
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('done',function(returnValue){
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+app.get("/sendWork2",function(request,response){
+    var DATE = decodeURIComponent(request.param('eventDate'));
+    var MEMOCONTENT = decodeURIComponent(request.param('eventContent'));
+    var MEMOTITLE = decodeURIComponent(request.param('eventName'));
+    var MEMO = MEMOTITLE + '//' + MEMOCONTENT; //두개를 합침
+    //메모 번호를 받고 쿠키에 저장 후 멤버 메모와 메모를 조인 후 합침
+    var query = "select MEMONO from MEMO where MEMODATE = " +"'"+ DATE+"'" + "AND MEMO =" +"'"+ MEMO + "'";//로드 될떄
+    var result = ' ';
+    result += '////';
+
+    sql.connect(config, function(err){
+
+      var request = new sql.Request();
+      request.stream = true;
+      request.query(query);
+
+      request.on('row', function(row){
+        result += row.MEMONO
+      });
+
+      request.on('done',function(returnValue){
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
+    });
+  });
+});
+app.get("/sendWork3",function(request,response){
+    var MemberNo = decodeURIComponent(request.param('MemberNo'));
+    var MEMONO = decodeURIComponent(request.param('MEMONO'));
+    //메모 번호를 받고 쿠키에 저장 후 멤버 메모와 메모를 조인 후 합침
+    var query = "INSERT INTO Member_MEMO (MemberNo,MEMONO) VALUES ('"+MemberNo+"','"+MEMONO+"')";
+    var result = "멤버메모테이블에 데이터 입력!";
 
     sql.connect(config, function(err){
 
@@ -457,10 +561,11 @@ app.get("/sendWork",function(request,response){
       request.query(query);
 
       request.on('done',function(returnValue){
-        response.send(query); //스케줄을 조절하는 페이지를 버튼으로 이동
+        response.send(result); //스케줄을 조절하는 페이지를 버튼으로 이동
     });
   });
 });
+
 
 //이미 있는 유저의 아이디를 입력 받아 쿠키로 전달
 app.get("/getuser",function(request,response){
@@ -468,7 +573,8 @@ app.get("/getuser",function(request,response){
   var Kakao_ID = decodeURIComponent(request.param('Kakao_ID'));
   var query = "select MemberNo from member where Join_ID = " +"'"+ Join_ID+"'" + "OR Kakao_ID =" +"'"+ Kakao_ID + "'";
   console.log(query);
-  var result  = '';
+  var result = ' ';
+  result += '////';
 
   sql.connect(config, function(err){
     var request = new sql.Request();
@@ -476,7 +582,7 @@ app.get("/getuser",function(request,response){
     request.query(query);
 
     request.on('row', function(row){
-      result = row.MemberNo
+      result += row.MemberNo
     });
 
     request.on('done',function(returnValue){

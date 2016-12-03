@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <title>JQuery UI Basic</title>
+  <title>사용자 스케줄 페이지</title>
   <meta charset="UTF-8">
   <link href="css/base/jquery-ui-1.10.4.custom.css" rel="stylesheet"/>
   <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
@@ -22,17 +22,46 @@
   <script>
 
  var loadCookie = '';
+ var userID = '';
+ var userEMAIL = '';
  //쿠키를 설정, 삭제 할때 사용
-    function setCookie(cValue, cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
-      var expire = new Date();
-      expire.setDate(expire.getDate() + cDay);
-      cookies = 'USERID=' + escape(cValue) + '; path=/ ';
-      if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
-      document.cookie = cookies;
-  }
+ function setJOINCookie(userID, userEMAIL ,cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
+   var expire = new Date();
+     expire.setDate(expire.getDate() + cDay);
+   cookies = 'USERID=' + escape(userID) +'/' + escape(userEMAIL) + '; path=/ ';
+   if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
+   document.cookie = cookies;
+}
+
+ function setKAKAOCookie(userID, cDay)
+ {
+   var expire = new Date();
+     expire.setDate(expire.getDate() + cDay);
+   cookies = 'USERID=' + escape(userID)+ '; path=/ ';
+   if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
+   document.cookie = cookies;
+ }
+
+ function getJoincookie()
+ {
+   var cName = 'USERID=';
+      var cookieData = document.cookie;
+      var start = cookieData.indexOf(cName);
+      var cValue = '';
+      if(start != -1){
+          start += cName.length;
+          var end = cookieData.indexOf(';', start);
+          if(end == -1)end = cookieData.length;
+          cValue = cookieData.substring(start, end);
+      }
+      loadCookie = unescape(cValue);
+      var second = loadCookie.split("/",2);
+      userID = second[0];
+      userEMAIL = second[1];
+ }
 
   //쿠키 불러오기
-    function getCookie(){
+    function getkakaoCookie(){
       var cName = 'USERID=';
          var cookieData = document.cookie;
          var start = cookieData.indexOf(cName);
@@ -44,6 +73,8 @@
              cValue = cookieData.substring(start, end);
          }
          loadCookie = unescape(cValue);
+         var second = loadCookie.split("/",2);
+         userID = second[0];
   }
 
 
@@ -66,36 +97,31 @@
     $(document).ready(function(){
 
       //처음에 로그인 할때 쿠키에서
-      getCookie();//멤버넘버를 저장후 메모넘버를 알아야 하므로 한번더 호출해야함
+      getJoincookie();
+      alert(userID + userEMAIL);
+      getkakaoCookie();
+      alert(userID );
 
-      var request = createRequest();
-      request.open('GET','/edit?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
-      request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-      request.send();
+      //쿠키 삭제
+      setJOINCookie(userID,userEMAIL,-1);
+      setKAKAOCookie(userID,-1);
 
 
-        $('#show-data').hide();
+      $('#show-data').hide();
         // 로그인 한 유저에 맞춰서 이 화면이 켜지면 리쿼스트를 보냄
       $('#edit').click(function(){
           var title =  $('#show-name').val();
           var content = $('#show-content').val();
           var showDate = $('#show-date').val();
 
-          var loadID = document.cookie;
-          var arr1 = loadID.search(';');
-          var arr2 = loadID.search('//');
-          loadID = loadID.slice(arr1+2,arr2);
-
-          alert(loadID);
-
           title = encodeURI(title);
           content = encodeURI(content);
           showDate = encodeURI(showDate);
-          loadID = encodeURI(loadID);
+          userID = encodeURI(userID);
 
 
           var request = createRequest();
-          request.open('GET','/edit?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
+          request.open('GET','/edit?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+userID,false);
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
           request.send();
 
@@ -109,24 +135,39 @@
         var content = $('#show-content').val();
         var showDate = $('#show-date').val();
 
-        var loadID = document.cookie;
-        var arr1 = loadID.search(';');
-        var arr2 = loadID.search('//');
-        loadID = loadID.slice(arr1+2,arr2);
-
-        alert(loadID);
-
         title = encodeURI(title);
         content = encodeURI(content);
         showDate = encodeURI(showDate);
-        loadID = encodeURI(loadID);
-
+        userID = encodeURI(userID);
+        //삭제할 메모넘버를 조회
         var request = createRequest();
-        request.open('GET','/delete?showDate='+showDate+'&title='+title +"&content="+content+ "&userID="+loadID,false);
+        request.open('GET','/delete?showDate='+showDate+'&title='+title +"&content="+content,false);
         request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         request.send();
 
-        alert(request.responseText);
+        var memono = request.responseText;
+
+        alert(memono);
+
+        var third = memono.split("////",2);
+        alert("memono:"+third[1]);
+
+        var request = createRequest();
+        request.open('GET','/delete3?MemberNo='+userID+'&MEMONO='+third[1],false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        var con = request.responseText;
+        alert(con);
+
+
+        var request = createRequest();
+        request.open('GET','/delete2?showDate='+showDate+'&title='+title +"&content="+content,false);
+        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        request.send();
+
+        var con = request.responseText;
+        alert(con);
 
       });
 
@@ -140,34 +181,39 @@
 
           var result ='';
           showDate = encodeURI(showDate);
-          //쿠키를 불러옴
-          var loadID = document.cookie;
-          var arr1 = loadID.search(';');
-          var arr2 = loadID.search('//');
-          loadID = loadID.slice(arr1+2,arr2);
 
 
           showDate = encodeURI(showDate);
           var request = createRequest();
-          request.open('GET','/getWork?showDate='+showDate + "&userID="+loadID,false);
+          request.open('GET','/getWork?showDate='+showDate + "&MemberNo="+userID,false);
           request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
           request.send();
 
-          //alert(request.responseText);
+          var memono = request.responseText;
 
-          if(request.responseText == '' || request.responseText == null)
+          var third = memono.split("////",2);
+          alert(third[1]);
+
+          var request = createRequest();
+          request.open('GET','/getWork2?showDate='+showDate + "&memono="+third[1],false);
+          request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+          request.send();
+
+          var con = request.responseText;
+
+
+          if(con == '' || con == null)
           {
             result = "값이 존재하지 않습니다.";
           }
           else {
-            result = request.responseText;
+            result = con;
           }
           alert("response값:" + result);
 
-          var arr = result.split("//");
-          $('#show-name').append(arr[0]);
+          var arr = result.split("//",2);
+          $('#show-name').val(arr[0]);
           $('#show-content').append(arr[1]);
-
           alert("일정 로딩 완료!");
       });
 
@@ -205,7 +251,28 @@
             request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
             request.send();
 
-            alert(request.responseText);
+            var con = request.responseText;
+            alert(con);
+
+            var request = createRequest();
+            request.open('GET','/sendWork2?eventDate='+eventDate+'&eventName='+
+            eventName + '&eventContent='+eventContent+'&userID='+loadID,false);
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+            request.send();
+
+            var memono = request.responseText;
+            alert("memono:" + memono);
+
+            var third = memono.split("////",2);
+            alert(third[1]);
+
+            var request = createRequest();
+            request.open('GET','/sendWork3?MemberNo='+userID+'&MEMONO='+third[1],false);
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+            request.send();
+
+            var con = request.responseText;
+            alert(con);
 
            },
           reset: function() {

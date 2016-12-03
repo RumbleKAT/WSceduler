@@ -11,33 +11,26 @@
 <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
 <script>
 Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
-//인덱스에서 이메일을 받고 클라이언트에다 저장 멤버매모랑 메모랑 조인후 데이터 받는거로
-
+var MemberNo = '';
+var email = '';
 //쿠키를 설정
-  function setCookie(cValue, cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
+function setJOINCookie(userID, userEMAIL ,cDay){ //1 //-1삭제 할때 사용  reservation_page 에서 변수로 저장 후 삭제
     var expire = new Date();
       expire.setDate(expire.getDate() + cDay);
-    cookies = 'USERID=' + escape(cValue) + '; path=/ ';
+    cookies = 'USERID=' + escape(userID) +'/' + escape(userEMAIL) + '; path=/ ';
     if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
     document.cookie = cookies;
 }
-//쿠키 불러오기
-  function getCookie(){
-
-    var cName = 'USERID=';
-       var cookieData = document.cookie;
-       var start = cookieData.indexOf(cName);
-       var cValue = '';
-       if(start != -1){
-           start += cName.length;
-           var end = cookieData.indexOf(';', start);
-           if(end == -1)end = cookieData.length;
-           cValue = cookieData.substring(start, end);
-       }
-       return unescape(cValue);
-}
-
-    function loginWithKakao() {
+function setKAKAOCookie(userID, cDay)
+  {
+    var expire = new Date();
+      expire.setDate(expire.getDate() + cDay);
+    cookies = 'USERID=' + escape(userID) + '; path=/ ';
+    if(typeof cDay != 'undefined') cookies += ';expires=' + expire.toGMTString() + ';';
+    document.cookie = cookies;
+  }
+//카카오 관련 부분
+function loginWithKakao() {
       var kakaoID = '';
       var kakaoNick = '';
       // 로그인 창을 띄웁니다.
@@ -52,8 +45,6 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
              kakaoNick = copy.properties.nickname;
 
             alert("ID"+kakaoID +":"+ "닉네임"+kakaoNick);
-
-            //kakao테이블에 정보를 전달
 
             var request = createRequest();
             kakaoID = encodeURI(kakaoID);
@@ -70,8 +61,6 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
             {
               result = "처음오셨군요! \n 잠시만 데이터를 입력하니 기다려주세요!.";
               alert(result);
-//카카오테이블이 추가하는 부분
-
               kakaoNick = encodeURI(kakaoNick);
               var request = createRequest();
               request.open('GET','/kakaoInsert?KakaoID='+kakaoID+'&kakaoNick='+kakaoNick,false);
@@ -80,7 +69,6 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
 
               var kakaoJoin = request.responseText;
               alert(kakaoJoin);
-//멤버 테이블에 추가하는 부분
               var request = createRequest();
               request.open('GET','/memberInsertKakao?KakaoID='+kakaoID,false);
               request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
@@ -89,7 +77,11 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
               var con = request.responseText; //멤버 넘버가 부여됨
               alert(con);
 
-              //쿠키로 저장하기
+              var second = con.split("////",2);
+              alert("쿠키 값:" +second[1]);
+
+              setKAKAOCookie(second[1],1);
+              alert("쿠키에 저장되었습니다.");
 
               go_url();
 
@@ -107,15 +99,19 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
               var con = request.responseText;
               alert(con);
 
-            //  var slice
+              var third = con.split("////",2);
+              alert(third[1]);
+              MemberNo = third[1];
 
-              //멤버테이블에서 멤버 넘버를 받음 받음
+              setKAKAOCookie(third[1],1);
+              alert("쿠키에 저장되었습니다.");
 
+              sendTo();
+              //sendTo
+
+              //go_url();
               //데이터 서치 후 있을 시 카카오 메시지를 보내고 없으면 안보냄
-
-
             }
-            //sendTo();
            },
            fail: function(error) {
              alert(JSON.stringify(error));
@@ -129,36 +125,44 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
     };
   //카카오톡 메시지 보내기
   function sendTo(){
-  // 호출한 데이터를 변수에 저장하기
-  //  var userdo = "해야하는일";
-  //  var userDate = "2016-11-30";
+
+    //현재 날짜와 동일한 날이 있을경우
     var request = createRequest();
-    request.open('GET','/ConnectMEMO?userID='+kakaoID,false);
+    request.open('GET','/ConnectMEMO?MemberNo='+MemberNo,false);
     request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
     request.send();
 
     var con =  request.responseText;
-    var search1 = "MEMO=";
-    var search2 = "MEMODATE=";
-    var search3 = "END";
-    var memo = con.slice(search1+5,search2);
-    var memodate = con.slice(search2+9,search3);
 
-    alert(memo + memodate); //메모와 날짜를 꺼냄
-    /*
-          Kakao.Auth.login({
-              //// 메모챗을 발송하기 위해서는 로그인할때 추가적인 scope 을 얻어야 한다.
-              scope: "PROFILE,TALK_MESSAGE",
-              success: function(res) {
-                  Kakao.API.request({
-                      url: '/v1/api/talk/memo/send',
-                      data: {
+    alert(con);
+
+    if(con == null || con == '')
+    {
+      result = "일치하는 일정이 없습니다.";
+      go_url();
+    }
+
+    else{
+    var third = con.split("//",2);
+    alert("제목:" +third[0]+"내용:"+third[1]);
+
+    var title = third[0];
+    var content = third[1];
+
+    Kakao.Auth.login({
+          scope: "PROFILE,TALK_MESSAGE",
+            success: function(res) {
+                Kakao.API.request({
+                    url: '/v1/api/talk/memo/send',
+                    data: {
                           template_id: '2039',
-                          args: '{"${USER_DO}": "'+userdo+'","${DATE}": "'+userDate+'"}'
+                          args: '{"${USER_DO}": "'+title+'","${DATE}": "'+content+'"}'
                       },
                       success: function(res) {
                           alert('success!');
-                          console.log(res);
+                          go_url();
+                          //console.log(res);
+                          //go_url();
                       },
                       fail: function(error) {
                           alert('error! \n' + JSON.stringify(error));
@@ -170,9 +174,9 @@ Kakao.init('9191ddabc50f18ec2bd40aa44ebf010b');
                   console.log(error);
               }
           });
-          */
+        }
       }
-
+//다음페이지로 이동
 function go_url(){
        location.href="reservation_page.html"  // 페이지 이동...
     }
@@ -194,12 +198,14 @@ function createRequest(){
 
   $(document).ready(function(){
   //  alert(document.cookie);
+    //test();
     $('#after').hide();
     $('#before').show();
 
     $('#Login').click(function(){
       var userID = $('#userID').val();
       var userPASS = $('#userPASS').val();
+      var second ='';
       var result ='';
 
       var request = createRequest();
@@ -208,6 +214,10 @@ function createRequest(){
       request.send();
 
       var con = request.responseText;
+
+      second = con.split("/",3);
+      alert("이메일 값:" +second[2]);
+      email = second;
 
       if(con == null || con == '')
       {
@@ -218,9 +228,11 @@ function createRequest(){
         var arr1 = con.split('//');
         result = " 환영합니다.";
         alert(result);
+        alert("email:"+second[2]);
         $('#before').hide();
 
         var request = createRequest();
+        userID = encodeURI(userID);
         request.open('GET','/ConnectMember?userID='+userID,false);
         request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         request.send();
@@ -228,21 +240,12 @@ function createRequest(){
         var con = request.responseText;
         alert(con);
 
-        var date = new Date();
-        date.setDate(date.getDate()+1);
+        var third = con.split("////",2);
+        alert("쿠키 값:" +third[1]);
 
+        setJOINCookie(third[1],second[2],1);
+        alert("쿠키에 저장되었습니다.");
 
-
-    //    alert('cookie:'+document.cookie);
-
-        //getuser 멤버넘버를 부여받음
-
-/*
-        var request = createRequest();
-        request.open('GET','/mailtouser?userID='+userID,false);
-        request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-        request.send();
-*/
         go_url();
 
       }
