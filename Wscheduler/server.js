@@ -136,47 +136,59 @@ app.get("/checkUSERID",function(request,response){
 
 //메모를 로딩하는 부분 메모를 찾는 부분과 사용자 정보를 찾는 부분을 만듬 -필
 app.get("/mailtouser",function(request,response){
- // 멤버에서 멤버조인을 찾는 부분을 하고 이거 뒤에
- // 멤버 메모에서 메모와 데이트를 찾음 이거 먼저
-  var userID = request.param('userID');
-  var email ='';
-  future = '2016-11-23';
-  var prequery = "select M.EMAIL,MM.MEMO from Member M ,MemberMemo2 MM where M.ID = MM.ID AND M.ID="+"'"+userID+"'"+"AND MM.DATEU="+"'"+future+"'";
-  console.log(prequery);
+  var MemberNo = request.param('MemberNo');
+  var email = request.param('email');
+
+  var dt = new Date();
+  var nowTime = dt.toFormat('YYYY-MM-DD'); // 현재시간을 알아냄
+  var future = Date.tomorrow();
+  future = future.toFormat('YYYY-MM-DD'); // 미래의 시간을 알아냄
+  console.log(future);
+
+  //var nowtime = '2016-12-04';
+  var query = "select M.MEMO from MEMO M ,Member_MEMO MM where M.MEMONO = MM.MEMONO AND MM.MemberNo="+"'"+MemberNo+"'"+"AND M.MEMODATE="+"'"+future+"'";
+  console.log(query);
   var memo = '';
+  var result ='';
+  //result = "내일 일정이 존재합니다! 이메일을 확인하세요!";
 
   sql.connect(config, function(err){
     var request = new sql.Request();
     request.stream = true;
-    request.query(prequery);
+    request.query(query);
 
     request.on('row', function(row){
         memo = row.MEMO
-        email = row.EMAIL
     });
 
       request.on('done',function(returnValue){
-        console.log(memo);
-        console.log(email);
-        var result ='';
-        var mailOptions = {
+        response.send(memo);
+      });
+});
+});
+//이메일을 보내는 부분
+app.get("/mailtouser2",function(request,response){
+  var memo = decodeURIComponent(request.param('memo'));
+  var email = decodeURIComponent(request.param('email'));
+  var check ='';
+  check  = '일정이 존재합니다! 이메일을 확인하세요!';
+  var mailOptions = {
             from: '"송명진" <reki318@gmail.com>',
             to: email,
             subject: '해야하는일',
             text: memo
-        };
+  };
 
-        transporter.sendMail(mailOptions, function(error, info){
+  transporter.sendMail(mailOptions, function(error, info){
             if(error){
                 return console.log(error);
             }
             console.log('Message sent: ' + info.response);
             result = info.response;
       });
-        response.send(result);
-      });
+    response.send(check);
 });
-});
+
 
 //카카오 로그인 부분
 app.get("/kakaoSelect",function(request,response){
@@ -229,7 +241,13 @@ app.get("/ConnectMemberKakao",function(request,response){
 app.get("/ConnectMEMO",function(request,response){
     var MEMONO = request.param('MEMONO');//카카오 ID를 입력
     var MemberNo = request.param('MemberNo');
-    var date = '2016-12-03';
+
+    var dt = new Date();
+    var nowTime = dt.toFormat('YYYY-MM-DD'); // 현재시간을 알아냄
+    var future = Date.tomorrow();
+    future = future.toFormat('YYYY-MM-DD'); // 미래의 시간을 알아냄
+
+    var date = '2016-12-06';
     var result = '';
     var query = "select M.MEMO  from MEMO M , Member_MEMO MM where M.MEMONO = MM.MEMONO AND MM.MemberNo="+"'"+MemberNo+"'"+"AND M.MEMODATE="+"'"+date+"'";
     sql.connect(config, function(err){
